@@ -1,0 +1,3304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="辦公室物語">
+<title>辦公室物語</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;700&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --bg: #08080f;
+  --bg2: #0e0e1a;
+  --bg3: #141420;
+  --border: #1e1e30;
+  --border2: #2a2040;
+  --text: #d4cce8;
+  --text-dim: #9988bb;
+  --text-muted: #806e91;
+  --atk: #6688cc;
+  --atk-glow: #4466aa44;
+  --sup: #cc6688;
+  --sup-glow: #aa446644;
+  --gold: #ccaa55;
+  --hp: #cc4466;
+  --skill: #9966cc;
+  --relic-common: #9988bb;
+  --relic-rare: #55aacc;
+  --relic-epic: #cc88ee;
+}
+
+
+* { box-sizing: border-box; margin: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR ── */
+#top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+#room-label { font-size: 12px; color: #c8bfa0; letter-spacing: 2px; }
+.hp-row { display: flex; align-items: center; gap: 6px; }
+.hp-track { width: 110px; height: 7px; background: #1a1a28; border-radius: 2px; overflow: hidden; }
+.hp-fill { height: 100%; background: linear-gradient(90deg, #aa3355, #dd5577); border-radius: 2px; transition: width .3s; }
+#hp-text { font-size: 10px; color: var(--hp); min-width: 55px; }
+
+/* ── MAIN LAYOUT ── */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── 敵人區（上） ── */
+#enemy-portraits {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #08060e;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* ── LOG區（中） ── */
+#battle-log {
+  flex: 1;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 6px 8px;
+  font-size: 11px;
+  line-height: 1.9;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+#battle-log p { margin: 0; color: #443355; }
+#battle-log p.fresh   { color: #e0d8f4; }
+#battle-log p.atk-log { color: #99bbff; }
+#battle-log p.sup-log { color: #ff99cc; }
+#battle-log p.sys-log { color: #cc99ff; }
+#battle-log p.bad-log { color: #ff7766; }
+
+/* ── 下排（角色＋手牌） ── */
+#bottom-row {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+  background: #08060e;
+}
+
+/* 角色立繪卡片（左） */
+#ally-card {
+  width: 140px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--bg3);
+  overflow: hidden;
+}
+#ally-img-area {
+  width: 140px;
+  height: 210px;
+  flex-shrink: 0;
+  position: relative;
+  background: #0a0810;
+  overflow: hidden;
+}
+#ally-img-area img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+#ally-img-area .portrait-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+.portrait-placeholder .ph-icon {
+  width: 48px; height: 64px;
+  border: 1px dashed #332244;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  color: #332244; font-size: 20px;
+}
+#ally-info {
+  flex: 1;
+  padding: 4px 6px 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--bg3);
+}
+#ally-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#ally-name { font-size: 11px; color: #d4c8e8; }
+#ally-label {
+  font-size: 8px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: #2a1228;
+  color: #ee88bb;
+}
+.ally-hp-row { display: flex; align-items: center; gap: 4px; margin-top: 1px; }
+.ally-hp-track { flex: 1; height: 3px; background: #111120; border-radius: 2px; overflow: hidden; }
+.ally-hp-fill { height: 100%; background: linear-gradient(90deg,#aa3355,#dd5577); border-radius: 2px; transition: width .3s; }
+.ally-hp-text { font-size: 8px; color: var(--hp); min-width: 40px; text-align: right; }
+#ally-mood { font-size: 9px; color: #9988bb; margin-top: 1px; }
+
+/* 手牌區（右） */
+#hand-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg2);
+}
+
+/* 計數器列 */
+#counters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.counter { display: flex; align-items: center; gap: 4px; }
+.counter-dot { width: 7px; height: 7px; border-radius: 50%; }
+.dot-atk { background: var(--atk); }
+.dot-sup { background: var(--sup); }
+.counter-val { font-size: 13px; font-weight: bold; }
+.cv-atk { color: var(--atk); }
+.cv-sup { color: var(--sup); }
+.counter-label { color: var(--text-muted); font-size: 9px; }
+
+#hand-cards {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  overflow-x: auto;
+  min-height: 0;
+}
+
+/* 按鈕列 */
+#btn-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 4px 10px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#hand-info {
+  font-size: 9px;
+  color: var(--text-muted);
+  flex: 1;
+  letter-spacing: 1px;
+}
+
+/* 敵人卡片（上排橫向，固定寬高） */
+.enemy-portrait-card {
+  width: 140px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  cursor: pointer;
+  transition: border-color .15s;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.enemy-portrait-card.targeted { border-color: #9966cc; box-shadow: 0 0 8px #66339933; }
+.enemy-portrait-card.dead { opacity: .2; pointer-events: none; }
+.enemy-portrait-card.stunned { border-color: #ccaa33; }
+.ep-img-area {
+  width: 140px;
+  height: 210px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #0a0810;
+  position: relative;
+}
+.ep-img-area img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+.ep-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: #332244; font-size: 28px;
+}
+.ep-info {
+  padding: 4px 6px 5px;
+  flex-shrink: 0;
+}
+.ep-name { font-size: 11px; color: #d4c8e8; }
+.ep-tags { display: flex; gap: 3px; flex-wrap: wrap; margin: 2px 0; }
+.ep-hp-row { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+.ep-hp-track { flex: 1; height: 3px; background: #111120; border-radius: 2px; overflow: hidden; }
+.ep-hp-fill { height: 100%; border-radius: 2px; transition: width .3s; }
+.ep-intent { font-size: 9px; color: #9988bb; margin-top: 2px; }
+.ep-stun { font-size: 8px; color: #ccaa33; }
+
+/* cards */
+.card {
+  width: 80px;
+  min-width: 80px;
+  height: 108px;
+  border-radius: 5px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 5px;
+  gap: 3px;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+  position: relative;
+  flex-shrink: 0;
+}
+.card:hover { transform: translateY(-6px); }
+.card.atk-card { border-color: #334466; background: #0d1220; }
+.card.atk-card:hover { border-color: var(--atk); box-shadow: 0 0 12px var(--atk-glow); }
+.card.sup-card { border-color: #442233; background: #120d18; }
+.card.sup-card:hover { border-color: var(--sup); box-shadow: 0 0 12px var(--sup-glow); }
+.card.skill-card.atk-card { border-color: #3a4466; background: #0d1220; }
+.card.skill-card.sup-card { border-color: #553355; background: #120d18; }
+.card.skill-card.atk-card:hover { border-color: var(--atk); box-shadow: 0 0 12px var(--atk-glow); }
+.card.skill-card.sup-card:hover { border-color: var(--sup); box-shadow: 0 0 12px var(--sup-glow); }
+.card.played { opacity: .3; pointer-events: none; transform: none; }
+.card.selected { border-color: #ccaa44 !important; box-shadow: 0 0 14px #aa883344 !important; transform: translateY(-8px) !important; }
+.card.selected::after { content:'✓'; position:absolute; top:3px; right:5px; font-size:10px; color:#ccaa44; }
+
+.card-tag {
+  font-size: 8px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  align-self: flex-start;
+}
+.ct-atk { background: #1a2840; color: var(--atk); }
+.ct-sup { background: #2a1228; color: var(--sup); }
+.ct-skill-atk { background: #1a2840; color: #88aaee; border: 1px solid #3a4466; }
+.ct-skill-sup { background: #2a1228; color: #ee88bb; border: 1px solid #553355; }
+
+.card-name {
+  font-size: 11px;
+  color: var(--text);
+  text-align: center;
+  font-family: 'Noto Serif TC', serif;
+  line-height: 1.3;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-desc {
+  font-size: 9px;
+  color: var(--text-dim);
+  text-align: center;
+  line-height: 1.4;
+}
+.card-threshold {
+  font-size: 9px;
+  color: var(--skill);
+  text-align: center;
+  border-top: 1px solid #221133;
+  padding-top: 3px;
+  width: 100%;
+}
+
+/* dmg float */
+.dmg-float {
+  position: absolute; font-size: 14px; font-weight: bold;
+  pointer-events: none; z-index: 20;
+  animation: floatUp .7s ease-out forwards;
+  font-family: 'Noto Serif TC', serif;
+  top: 8px; left: 20px;
+}
+@keyframes floatUp {
+  0%   { opacity:1; transform:translateY(0) scale(1); }
+  100% { opacity:0; transform:translateY(-30px) scale(.7); }
+}
+
+/* enemy tags */
+.enemy-tag { display: inline-block; font-size: 9px; padding: 1px 4px; border-radius: 2px; }
+.tag-n { background: #1e1e30; color: #6666aa; }
+.tag-b { background: #2a0820; color: #cc4488; }
+.tag-m { background: #1e1008; color: #cc7733; }
+.ehp-n { background: #cc4466; }
+.ehp-b { background: #aa2255; }
+.ehp-m { background: #cc7733; }
+.card.charmed-card { border-color: #7733aa !important; background: #160d20 !important; cursor: not-allowed !important; }
+.card.charmed-card:hover { transform: none !important; box-shadow: 0 0 8px #7733aa44 !important; }
+.card.charmed-card .card-name { color: #bb77ee; }
+.card.charmed-card .card-desc { color: #7744aa; }
+
+#end-turn-btn {
+  width: 100%;
+  margin-top: 6px;
+  padding: 7px;
+  background: transparent;
+  border: 1px solid #332244;
+  border-radius: 3px;
+  color: #9966cc;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: all .15s;
+}
+#end-turn-btn:hover { background: #1a0a2a; border-color: #9966cc; }
+#end-turn-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+/* ── DECK INFO BAR ── */
+#deck-info {
+  display: flex;
+  gap: 16px;
+  padding: 3px 10px;
+  font-size: 9px;
+  color: var(--text-muted);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#deck-info span { color: var(--text-dim); }
+
+/* ── MODALS ── */
+.modal {
+  display: none;
+  position: fixed; inset: 0;
+  background: #000000cc;
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal.active { display: flex; }
+.modal-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 16px;
+  color: #c8bae8;
+  letter-spacing: 3px;
+}
+.modal-sub { font-size: 9px; color: var(--text-muted); letter-spacing: 2px; }
+
+/* reward cards */
+#reward-choices { display: flex; gap: 10px; }
+.reward-card {
+  width: 120px;
+  background: #10101e;
+  border: 1px solid #3a2a50;
+  border-radius: 6px;
+  padding: 12px 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .2s;
+}
+.reward-card:hover { border-color: #9966cc; background: #1a1030; transform: translateY(-3px); }
+.reward-card .rc-tag { font-size: 8px; margin-bottom: 6px; }
+.reward-card .rc-name { font-family: 'Noto Serif TC', serif; font-size: 12px; color: #d4c4f4; margin-bottom: 5px; }
+.reward-card .rc-desc { font-size: 8px; color: #9988bb; line-height: 1.5; }
+.reward-card .rc-thresh { font-size: 8px; color: var(--skill); margin-top: 4px; }
+.rc-skip {
+  padding: 5px 16px;
+  background: transparent;
+  border: 1px solid #2a1a3a;
+  border-radius: 3px;
+  color: #443355;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+.rc-skip:hover { border-color: #553366; color: #7755aa; }
+
+/* replace modal */
+#replace-modal .deck-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 600px;
+  justify-content: center;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.replace-card {
+  width: 100px;
+  background: #10101e;
+  border: 1px solid #2a1a3a;
+  border-radius: 4px;
+  padding: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+  font-size: 9px;
+}
+.replace-card:hover { border-color: #cc4466; background: #1a0a1a; }
+.replace-card .rp-name { font-family: 'Noto Serif TC', serif; font-size: 11px; color: #d4c4e4; margin-bottom: 3px; }
+.replace-card .rp-tag { font-size: 7px; color: #9988bb; }
+
+/* overlay */
+#overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: #000000f0;
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+#overlay.active { display: flex; }
+#overlay-title { font-family: 'Noto Serif TC', serif; font-size: 24px; color: #d4c4f4; letter-spacing: 4px; }
+#overlay-sub { font-size: 11px; color: #665580; letter-spacing: 2px; }
+#overlay-btn {
+  padding: 8px 24px;
+  background: transparent;
+  border: 1px solid #6644aa;
+  border-radius: 3px;
+  color: #c8bae8;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 2px;
+}
+#overlay-btn:hover { background: #1a1030; border-color: #9966cc; }
+
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a2040; border-radius: 2px; }
+
+/* ── 選角介面 ── */
+#mode-select, #demo-select {
+  position: fixed; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 20px;
+  background: var(--bg); z-index: 400; padding: 24px;
+}
+#mode-select.hidden, #demo-select.hidden { display: none; }
+.mode-btn {
+  padding: 10px 28px; border: 1px solid #554466; border-radius: 6px;
+  background: #1a0e22; color: #ccaaee; font-size: 13px; cursor: pointer;
+  letter-spacing: 1px; transition: background 0.2s;
+}
+.mode-btn:hover { background: #2a1a3a; }
+#demo-relic-list { display: flex; flex-wrap: wrap; gap: 8px; max-width: 600px; max-height: 220px; overflow-y: auto; justify-content: center; }
+#demo-boss-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.demo-relic-chip { padding: 4px 10px; border-radius: 12px; font-size: 10px; cursor: pointer; border: 1px solid #443355; color: #aа88cc; background: #1a0e22; user-select: none; }
+.demo-relic-chip.selected { background: #3a1a4a; border-color: #9966cc; color: #ddaaff; }
+.demo-boss-chip { padding: 6px 14px; border-radius: 6px; font-size: 11px; cursor: pointer; border: 1px solid #443355; color: #aa88cc; background: #1a0e22; user-select: none; }
+.demo-boss-chip.selected { background: #3a1a4a; border-color: #9966cc; color: #ddaaff; }
+
+#char-select {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+#char-select.hidden { display: none; }
+.screen-title, #char-select-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 18px;
+  color: #c8bae8;
+  letter-spacing: 4px;
+}
+.screen-sub, #char-select-sub {
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  margin-top: -16px;
+}
+#char-cards {
+  display: flex;
+  gap: 16px;
+}
+.char-card {
+  width: 150px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+  display: flex;
+  flex-direction: column;
+}
+.char-card:hover {
+  border-color: #9966cc;
+  box-shadow: 0 0 16px #66339933;
+  transform: translateY(-4px);
+}
+.char-card.selected {
+  border-color: #ccaa44;
+  box-shadow: 0 0 16px #aa883344;
+}
+.char-img-area {
+  width: 150px;
+  height: 220px;
+  background: #0a0810;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.char-img-area img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+.char-img-area .char-ph {
+  color: #332244; font-size: 36px;
+}
+.char-info {
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.char-name {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 14px;
+  color: #d4c8e8;
+}
+.char-role {
+  font-size: 8px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  align-self: flex-start;
+  background: #2a1228;
+  color: #ee88bb;
+}
+.char-desc {
+  font-size: 9px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-top: 2px;
+}
+.char-stats {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 8px;
+  color: #665580;
+}
+.char-stats span { color: var(--text-dim); }
+#char-confirm {
+  padding: 8px 32px;
+  background: transparent;
+  border: 1px solid #6644aa;
+  border-radius: 3px;
+  color: #c8bae8;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: all .15s;
+}
+#char-confirm:hover { background: #1a1030; border-color: #9966cc; }
+#char-confirm:disabled { opacity: .3; cursor: not-allowed; }
+
+/* DOT顯示 */
+.dot-badge {
+  display: inline-block;
+  background: #1a2a10;
+  color: #88cc44;
+  font-size: 7px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-left: 3px;
+}
+/* 減傷狀態 */
+.shield-badge {
+  display: inline-block;
+  background: #101828;
+  color: #4488cc;
+  font-size: 7px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-left: 3px;
+}
+
+/* ── 遺物欄 ── */
+#relic-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  min-height: 28px;
+}
+.relic-chip {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid #2a2040;
+  background: var(--bg3);
+  color: var(--relic-common);
+  cursor: default;
+  position: relative;
+  white-space: nowrap;
+  transition: border-color .15s;
+}
+.relic-chip.rare  { color: var(--relic-rare);  border-color: #1a3a44; }
+.relic-chip.epic  { color: var(--relic-epic);  border-color: #3a1a44; }
+.relic-chip.period-active { color: #ff5577; border-color: #551122; }
+.relic-chip:hover { border-color: #6644aa; }
+.relic-chip .relic-tip {
+  display: none;
+  position: absolute;
+  bottom: 120%;
+  left: 0;
+  transform: none;
+  background: #0a0812;
+  border: 1px solid #3a2a50;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 8px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  z-index: 50;
+  pointer-events: none;
+}
+.relic-chip:hover .relic-tip { display: block; }
+
+/* 遺物選擇modal內的卡片 */
+.relic-reward-card {
+  width: 130px;
+  background: #10101e;
+  border: 1px solid #3a2a50;
+  border-radius: 6px;
+  padding: 12px 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .2s;
+}
+.relic-reward-card:hover { border-color: #9966cc; background: #1a1030; transform: translateY(-3px); }
+.relic-reward-card.rare  { border-color: #1a3a44; }
+.relic-reward-card.rare:hover  { border-color: var(--relic-rare); }
+.relic-reward-card.epic  { border-color: #3a1a44; }
+.relic-reward-card.epic:hover  { border-color: var(--relic-epic); }
+.rrc-rarity { font-size: 7px; letter-spacing: 1px; margin-bottom: 4px; }
+.rrc-rarity.common { color: var(--relic-common); }
+.rrc-rarity.rare   { color: var(--relic-rare); }
+.rrc-rarity.epic   { color: var(--relic-epic); }
+.rrc-name { font-family: 'Noto Serif TC', serif; font-size: 13px; color: #d4c4f4; margin-bottom: 6px; }
+.rrc-desc { font-size: 8px; color: #9988bb; line-height: 1.6; }
+
+/* 生理期提示 */
+#period-notice {
+  display: none;
+  position: fixed;
+  top: 40px; left: 50%;
+  transform: translateX(-50%);
+  background: #1a0810;
+  border: 1px solid #cc2244;
+  border-radius: 4px;
+  padding: 6px 16px;
+  font-size: 10px;
+  color: #ff5577;
+  z-index: 80;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+/* ── MOBILE ── */
+@media (max-width: 600px) {
+
+  /* 修正網址列跳動：用 JS 設定的 --vh 變數取代 100vh */
+  body {
+    font-size: 15px;
+    overflow-y: auto;
+    height: calc(var(--vh, 1vh) * 100);
+    min-height: calc(var(--vh, 1vh) * 100);
+  }
+
+  /* TOP BAR */
+  #top { padding: 8px 12px; font-size: 12px; }
+  #room-label { font-size: 14px; }
+  .hp-track { width: 90px; height: 8px; }
+  #hp-text { font-size: 12px; }
+
+  /* 遺物列 */
+  #relic-bar { font-size: 11px; padding: 5px 10px; flex-wrap: wrap; gap: 6px; }
+  /* 手機遺物 tooltip：點擊顯示，改用 .tip-open class 取代 hover */
+  .relic-chip .relic-tip { display: none; white-space: normal; min-width: 140px; font-size: 11px; }
+  .relic-chip.tip-open .relic-tip { display: block; }
+
+  /* 敵人區 */
+  #enemy-portraits {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px;
+  }
+  .enemy-portrait-card { width: 130px; }
+  .ep-img-area { height: 80px; }
+  .ep-name { font-size: 13px; }
+  .enemy-tag { font-size: 11px; padding: 2px 6px; }
+  .ep-hp-fill, .ep-hp-track { height: 6px; }
+
+  /* LOG */
+  #battle-log {
+    max-height: 120px;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  /* 下排：改為上下堆疊 */
+  #bottom-row {
+    flex-direction: column;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  /* 角色卡：橫排縮小 */
+  #ally-card {
+    width: 100% !important;
+    flex-direction: row !important;
+    height: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  .ep-img-area {
+    width: 70px !important;
+    height: 70px !important;
+    flex-shrink: 0;
+  }
+  #ally-card .ep-info { padding: 4px 8px; }
+  #ally-card .ep-name { font-size: 15px; }
+  #ally-card .ep-hp-track { height: 6px; }
+
+  /* 手牌區 */
+  #hand-panel { width: 100%; }
+
+  /* 計數器 */
+  #counters { flex-wrap: wrap; gap: 8px; padding: 6px 8px; font-size: 13px; }
+  .counter-val { font-size: 16px; }
+  .counter-label { font-size: 11px; }
+  .counter-dot { width: 9px; height: 9px; }
+  #mechanic-hint { font-size: 11px; padding: 4px 8px; }
+
+  /* 手牌 */
+  #hand-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    padding: 8px 4px;
+  }
+  .card {
+    width: 100px !important;
+    min-height: 120px !important;
+    padding: 8px 6px !important;
+  }
+  .card-tag { font-size: 10px !important; padding: 2px 5px !important; }
+  .card-name { font-size: 13px !important; }
+  .card-desc { font-size: 11px !important; }
+  .card-threshold { font-size: 10px !important; }
+
+  /* 結束回合按鈕 */
+  #end-turn-btn {
+    font-size: 15px !important;
+    padding: 12px !important;
+    letter-spacing: 3px;
+    margin-top: 8px;
+  }
+
+  /* Modal */
+  .modal { padding: 16px; }
+  .modal-title { font-size: 18px !important; }
+  .modal-sub { font-size: 13px !important; }
+  .relic-reward-card { width: 140px !important; padding: 12px 10px !important; }
+  .rrc-name { font-size: 14px !important; }
+  .rrc-desc { font-size: 11px !important; }
+  .rc-skip { font-size: 14px !important; padding: 10px 24px !important; }
+
+  /* 選角畫面：可捲動，卡片直排 */
+  #char-select {
+    position: fixed;
+    overflow-y: auto;
+    justify-content: flex-start;
+    padding: 24px 16px 40px;
+    gap: 16px;
+  }
+  #char-cards {
+    flex-direction: column !important;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+  }
+  .char-card {
+    width: 85% !important;
+    max-width: 300px;
+    flex-direction: row !important;
+    height: auto !important;
+  }
+  .char-img-area {
+    width: 90px !important;
+    height: 90px !important;
+    flex-shrink: 0;
+  }
+  .char-info { flex: 1; padding: 10px 12px; }
+  .char-name { font-size: 16px !important; }
+  .char-role { font-size: 11px !important; }
+  .char-desc { font-size: 11px !important; line-height: 1.5; }
+  #char-confirm { font-size: 16px !important; padding: 12px 40px !important; margin-top: 8px; }
+
+  /* overlay */
+  #overlay-title { font-size: 28px !important; }
+  #overlay-sub { font-size: 16px !important; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- 選角介面 -->
+<div id="mode-select">
+  <div class="screen-title">辦公室物語</div>
+  <div class="screen-sub">選擇遊戲模式</div>
+  <div style="display:flex;gap:16px;justify-content:center;margin-top:24px;">
+    <button class="mode-btn" onclick="startNormalMode()">一般模式</button>
+    <button class="mode-btn" onclick="startDemoMode()">DEMO 模式</button>
+  </div>
+</div>
+
+<div id="demo-select" class="hidden">
+  <div class="screen-title">DEMO 設定</div>
+  <div class="screen-sub">自由選擇遺物與 Boss</div>
+  <div id="demo-relic-section">
+    <div style="font-size:11px;color:#998;letter-spacing:1px;margin-bottom:8px;">選擇遺物（可複選）</div>
+    <div id="demo-relic-list"></div>
+  </div>
+  <div id="demo-boss-section" style="margin-top:16px;">
+    <div style="font-size:11px;color:#998;letter-spacing:1px;margin-bottom:8px;">選擇 Boss（第15間）</div>
+    <div id="demo-boss-list"></div>
+  </div>
+  <div style="display:flex;gap:12px;justify-content:center;margin-top:20px;">
+    <button class="mode-btn" onclick="backToMode()">返回</button>
+    <button class="mode-btn" onclick="confirmDemo()">確認</button>
+  </div>
+</div>
+
+<div id="char-select" class="hidden">
+  <div id="char-select-title">選擇角色</div>
+  <div id="char-select-sub">選擇後無法更換，直到本局結束</div>
+  <div id="char-cards">
+    <div class="char-card" onclick="selectChar('xiaoxue')">
+      <div class="char-img-area">
+        <img src="xiaoxue.png" alt="小雪" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="char-ph" style="display:none">✦</div>
+      </div>
+      <div class="char-info">
+        <div class="char-name">小雪</div>
+        <div class="char-role">專屬秘書</div>
+        <div class="char-desc">儀態系統：攻+輔並出時儀態+1，回合開始回復儀態×5 HP，溢出對敵造成傷害。</div>
+      </div>
+    </div>
+    <div class="char-card" onclick="selectChar('lingzi')">
+      <div class="char-img-area">
+        <img src="lingzi.png" alt="綾子" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="char-ph" style="display:none">✦</div>
+      </div>
+      <div class="char-info">
+        <div class="char-name">綾子</div>
+        <div class="char-role">親密鄰居</div>
+        <div class="char-desc">陰鬱系統：輔助牌對全體+1陰鬱層，回合結束全體承受等同陰鬱值傷害，層數越高越致命。</div>
+      </div>
+    </div>
+    <div class="char-card" onclick="selectChar('zizi')">
+      <div class="char-img-area">
+        <img src="zizi.png" alt="子子" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="char-ph" style="display:none">✦</div>
+      </div>
+      <div class="char-info">
+        <div class="char-name">子子</div>
+        <div class="char-role">青梅竹馬</div>
+        <div class="char-desc">亢奮系統：每出攻擊牌亢奮+1，每次攻擊傷害+亢奮值，亢奮永久累積，越打越痛。</div>
+      </div>
+    </div>
+  </div>
+  <button id="char-confirm" disabled onclick="confirmChar()">出發</button>
+</div>
+
+<div id="period-notice">⚠ 今天身體不太對</div>
+
+<div id="top">
+  <div><span id="room-label">第 1 間</span> <span style="color:#332244;font-size:9px;">/ 20</span></div>
+</div>
+
+<div id="relic-bar"><span style="font-size:9px;color:#332244;letter-spacing:1px;">尚無遺物</span></div>
+
+<div id="main">
+  <!-- 上：敵人橫排 -->
+  <div id="enemy-portraits"></div>
+
+  <!-- 中：LOG -->
+  <div id="battle-log"></div>
+
+  <!-- 下：角色 + 手牌 -->
+  <div id="bottom-row">
+    <!-- 角色卡片（與敵人同格式） -->
+    <div id="ally-card" class="enemy-portrait-card" style="cursor:default;border-color:#553355;">
+      <div class="ep-img-area">
+        <img src="xiaoxue.png" alt="小雪" onerror="this.style.display='none';document.getElementById('ally-ph').style.display='flex'">
+        <div id="ally-ph" class="ep-placeholder" style="display:none">✦</div>
+      </div>
+      <div class="ep-info">
+        <div class="ep-name">小雪</div>
+        <div class="ep-tags">
+          <span class="enemy-tag tag-b" style="background:#2a1228;color:#ee88bb;" id="ally-role-tag">專屬秘書</span>
+        </div>
+        <div class="ep-hp-row">
+          <div class="ep-hp-track"><div class="ep-hp-fill ehp-b" id="portrait-hp-bar" style="width:100%"></div></div>
+          <span style="font-size:8px;color:#AAA;min-width:40px;text-align:right;" id="portrait-hp-text">75/75</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 手牌面板 -->
+    <div id="hand-panel">
+      <!-- 計數器列 -->
+      <div id="counters">
+        <div class="counter">
+          <div class="counter-dot dot-atk"></div>
+          <span class="counter-val cv-atk" id="atk-count">0</span>
+          <span class="counter-label">攻擊</span>
+        </div>
+        <div class="counter">
+          <div class="counter-dot dot-sup"></div>
+          <span class="counter-val cv-sup" id="sup-count">0</span>
+          <span class="counter-label">輔助</span>
+        </div>
+        <!-- 小雪儀態 -->
+        <div class="counter" id="xs-grace-counter" style="display:none">
+          <div class="counter-dot" style="background:#d4a0cc"></div>
+          <span class="counter-val" style="color:#d4a0cc" id="xs-grace-val">0</span>
+          <span class="counter-label">儀態</span>
+        </div>
+        <!-- 綾子陰鬱 -->
+        <div class="counter" id="lz-dot-counter" style="display:none">
+          <div class="counter-dot" style="background:#88cc44"></div>
+          <span class="counter-val" style="color:#88cc44" id="lz-dot-val">0</span>
+          <span class="counter-label">陰鬱</span>
+        </div>
+        <!-- 子子亢奮 -->
+        <div class="counter" id="zz-fury-counter" style="display:none">
+          <div class="counter-dot" style="background:#cc8844"></div>
+          <span class="counter-val" style="color:#cc8844" id="zz-fury-val">0</span>
+          <span class="counter-label">亢奮</span>
+        </div>
+        <div style="width:1px;background:var(--border);margin:0 4px;self-align:stretch;"></div>
+        <span style="font-size:9px;color:var(--text-muted);">牌組 <span id="di-total" style="color:var(--text-dim);">10</span></span>
+        <span style="font-size:9px;color:var(--text-muted);">攻 <span id="di-atk" style="color:#6688cc;">6</span></span>
+        <span style="font-size:9px;color:var(--text-muted);">輔 <span id="di-sup" style="color:#cc6688;">4</span></span>
+        <span style="font-size:9px;color:var(--text-muted);">技能 <span id="di-skill" style="color:#9966cc;">0</span></span>
+        <div style="flex:1"></div>
+      </div>
+      <!-- 專屬計數效果說明列 -->
+      <div id="mechanic-hint" style="font-size:9px;color:#9977bb;letter-spacing:1px;padding:2px 6px 4px;min-height:14px;"></div>
+      <!-- 手牌 -->
+      <div id="hand-cards"></div>
+      <!-- 按鈕列 -->
+      <div id="btn-row">
+        <button id="end-turn-btn" onclick="endTurn()">結束回合</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reward Modal（遺物選擇） -->
+<div id="reward-modal" class="modal">
+  <div class="modal-title" id="reward-modal-title">通關獎勵</div>
+  <div class="modal-sub" id="reward-modal-sub">選擇一個遺物</div>
+  <div id="reward-choices" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:680px;"></div>
+  <button class="rc-skip" onclick="skipReward()">跳過</button>
+</div>
+
+<!-- Overlay -->
+<div id="overlay">
+  <div id="overlay-title"></div>
+  <div id="overlay-sub"></div>
+  <div id="overlay-stats" style="font-size:10px;color:#665580;text-align:center;line-height:1.9;letter-spacing:1px;"></div>
+  <button id="overlay-btn" onclick="restartGame()">再來一次</button>
+</div>
+
+<script>
+// ── 手機：修正網址列造成的 viewport 高度跳動 ──
+function setVh(){
+  document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01)+'px');
+}
+setVh();
+window.addEventListener('resize', setVh);
+
+// ── 手機：遺物點擊顯示 tooltip（取代 hover）──
+document.addEventListener('click', function(e){
+  const chip = e.target.closest('.relic-chip');
+  if(chip){
+    const wasOpen = chip.classList.contains('tip-open');
+    document.querySelectorAll('.relic-chip.tip-open').forEach(c=>c.classList.remove('tip-open'));
+    if(!wasOpen) chip.classList.add('tip-open');
+    e.stopPropagation();
+    return;
+  }
+  document.querySelectorAll('.relic-chip.tip-open').forEach(c=>c.classList.remove('tip-open'));
+});
+
+// ══════════════════════════════════════════════════════
+// 角色定義（固定起始牌組）
+// ══════════════════════════════════════════════════════
+const CHAR_DEF = {
+  xiaoxue: {
+    name: '小雪', role: '專屬秘書', portrait: 'xiaoxue.png',
+    hp: 75, atkPower: 6, healPower: 6,
+    startDeck: [
+      { id:'xs_atk', name:'文書處理', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'xs_atk', name:'文書處理', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'xs_atk', name:'文書處理', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'xs_atk', name:'文書處理', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'xs_sup', name:'提拉米蘇', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'xs_sup', name:'提拉米蘇', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'xs_sup', name:'提拉米蘇', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'xs_sup', name:'提拉米蘇', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'xs_skill_aoe', name:'群發郵件', type:'atk', isSkill:true,
+        desc:'全體 8 傷',
+        effect:null,
+        onResolve:(G)=>{ aoeDmg(G,8); log('群發郵件，全體 8 傷！','atk'); }
+      },
+      { id:'xs_skill_grace', name:'補妝', type:'sup', isSkill:true,
+        desc:'回復 10 HP，儀態+1',
+        effect:null,
+        onResolve:(G)=>{ heal(G,10); G.xs_grace=(G.xs_grace||0)+1; log('補妝：回血 10，儀態 +1','sup'); renderXsGrace(); }
+      },
+    ],
+  },
+
+  lingzi: {
+    name: '綾子', role: '親密鄰居', portrait: 'lingzi.png',
+    hp: 80, atkPower: 4, healPower: 4,
+    startDeck: [
+      { id:'lz_atk', name:'整理桌面', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'lz_atk', name:'整理桌面', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'lz_atk', name:'整理桌面', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'lz_atk', name:'整理桌面', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'lz_sup', name:'抹茶蛋糕', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'lz_sup', name:'抹茶蛋糕', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'lz_sup', name:'抹茶蛋糕', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'lz_sup', name:'抹茶蛋糕', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'lz_skill_heal_dot', name:'病識感', type:'sup', isSkill:true,
+        desc:'回復等同陰鬱值的 HP',
+        effect:null,
+        onResolve:(G)=>{ const dep=G.lz_depression||0; heal(G,dep); log('病識感：回復 '+dep+' HP（陰鬱：'+dep+'）。','sup'); }
+      },
+      { id:'lz_skill_shield', name:'自我封閉', type:'sup', isSkill:true,
+        desc:'減傷1回合',
+        effect:null,
+        onResolve:(G)=>{ G.damageReduction=1; log('自我封閉：減傷啟動。','sup'); }
+      },
+    ],
+  },
+
+  zizi: {
+    name: '子子', role: '青梅竹馬', portrait: 'zizi.png',
+    hp: 70, atkPower: 8, healPower: 8,
+    startDeck: [
+      { id:'zz_atk', name:'熱血上工', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'zz_atk', name:'熱血上工', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'zz_atk', name:'熱血上工', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'zz_atk', name:'熱血上工', type:'atk', isSkill:false,
+        get desc(){ return '造成 '+( (window.G&&G.atkPower)||0)+' 點傷害'; },
+        effect:(G)=>{ dealDmg(G, G.atkPower); } },
+      { id:'zz_sup', name:'雞蛋布丁', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'zz_sup', name:'雞蛋布丁', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'zz_sup', name:'雞蛋布丁', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'zz_sup', name:'雞蛋布丁', type:'sup', isSkill:false,
+        get desc(){ return '回復 '+((window.G&&G.healPower)||0)+' HP'; },
+        effect:(G)=>{ heal(G, G.healPower); } },
+      { id:'zz_skill_heavy', name:'幹勁爆發', type:'atk', isSkill:true,
+        desc:'造成 18 點傷害',
+        effect:null,
+        onResolve:(G)=>{ dealDmg(G,18); log('幹勁爆發！','atk'); }
+      },
+      { id:'zz_skill_vamp', name:'容貌焦慮', type:'atk', isSkill:true,
+        desc:'造成 8 點傷害，回復傷害量 HP',
+        effect:null,
+        onResolve:(G)=>{ const d=dealDmg(G,8); heal(G,d); log('容貌焦慮：造成 '+d+' 傷，回復 '+d+' HP。','atk'); }
+      },
+    ],
+  },
+};
+
+
+// ══════════════════════════════════════════════════════
+// 遺物定義
+// ══════════════════════════════════════════════════════
+// rarity: 'common' | 'rare' | 'epic'
+// owner:  null（共通）| 'xiaoxue' | 'lingzi' | 'zizi'
+// hooks:  onPickup, onBattleStart, onBattleEnd, onTurnStart, onTurnEnd,
+//         onDamageDealt(dmg,enemy), onDamageReceived(dmg), onHeal(amt), onEnemyDead(enemy)
+// passive flags set on G.relicMod（每場戰鬥/每回合由 applyRelicPassives() 計算）
+
+const RELIC_POOL = [
+  // ── 攻輔判定 ──
+  { id:'r_sticky',    name:'便利貼',     rarity:'rare',   owner:null, desc:'攻擊牌也視為輔助牌',
+    passive:{ atkCountsAsSup:true } },
+  { id:'r_redpen',    name:'紅筆',       rarity:'rare',   owner:null, desc:'輔助牌也視為攻擊牌',
+    passive:{ supCountsAsAtk:true } },
+  { id:'r_laser',     name:'雷射筆',     rarity:'rare',   owner:null, desc:'同時出攻擊與輔助牌時，對目標造成暈眩',
+    passive:{ stunOnMix:true } },
+  { id:'r_clip',      name:'迴紋針',     rarity:'common', owner:null, desc:'同時出攻擊與輔助牌時，兩者效果各+2',
+    passive:{ mixBonusEach:2 } },
+  { id:'r_tablet',    name:'平板電腦',   rarity:'epic',   owner:null, desc:'≥2攻 且 ≥2輔時，所有牌額外觸發一次',
+    passive:{ doubleIfMix2:true } },
+  { id:'r_mfp',       name:'多功能事務機',rarity:'epic',  owner:null, desc:'≥3攻 且 ≥3輔時，所有效果+5',
+    passive:{ bonusIfMix3:5 } },
+
+  // ── 犧牲流 ──
+  { id:'r_coffee',    name:'黑咖啡',     rarity:'common', owner:null, desc:'每次攻擊時傷害+1，但HP -1',
+    passive:{ dmgFlat:1, selfDmgPerAtk:1 } },
+  { id:'r_overnight', name:'熬夜趕工',   rarity:'rare',   owner:null, desc:'第一回合攻擊牌觸發兩次，但HP -10',
+    passive:{ doubleAtkFirstTurn:true, hpCostFirstTurn:10 } },
+  { id:'r_overwork',  name:'過勞硬撐',   rarity:'common', owner:null, desc:'受傷-3，但每回合HP -3',
+    passive:{ dmgRedFlat:3, selfDmgPerTurn:3 } },
+  { id:'r_crunch',    name:'連續加班',   rarity:'rare',   owner:null, desc:'≥2攻時，HP -5，每次攻擊傷害+2',
+    passive:{ dmgBonusIfAtk2Cost:2, hpCostIfAtk2:5 } },
+  { id:'r_energydrink',name:'提神飲料',  rarity:'common', owner:null, desc:'每次回復量+3，但每回合HP -3',
+    passive:{ healBonus:3, selfDmgPerTurn:3 } },
+  { id:'r_burnout',   name:'爆肝夜',     rarity:'epic',   owner:null, desc:'≥3攻時，HP -10，本回合傷害翻倍',
+    passive:{ dmgDoubleIfAtk3:true, hpCostIfAtk3:10 } },
+
+  // ── 連擊流 ──
+  { id:'r_meeting',   name:'專案會議',   rarity:'rare',   owner:null, desc:'每張攻擊牌額外觸發一次',
+    passive:{ atkCardExtraHit:true } },
+  { id:'r_sprint',    name:'季末衝刺',   rarity:'common', owner:null, desc:'第四次攻擊傷害+6',
+    passive:{ dmgBonus4thAtk:6 } },
+  { id:'r_emergency', name:'緊急檢討會', rarity:'epic',   owner:null, desc:'≥2攻時，每張攻擊牌額外觸發一次',
+    passive:{ atkCardExtraHitIfAtk2:true } },
+  { id:'r_weekly',    name:'週會',       rarity:'common', owner:null, desc:'每兩次攻擊的傷害+1',
+    passive:{ dmgEvery2Atk:1 } },
+  { id:'r_progress',  name:'進度說明會', rarity:'rare',   owner:null, desc:'每次攻擊的傷害遞增+1',
+    passive:{ dmgRampPerAtk:1 } },
+  { id:'r_deadline',  name:'死線日',     rarity:'epic',   owner:null, desc:'第六次攻擊傷害+10',
+    passive:{ dmgBonus6thAtk:10 } },
+
+  // ── 壓血流 ──
+  { id:'r_diet_pill', name:'減肥藥',     rarity:'common', owner:null, desc:'HP上限-20，傷害+2',
+    onPickup:(G)=>{ G.maxHp=Math.max(1,G.maxHp-20); G.hp=Math.min(G.hp,G.maxHp); },
+    passive:{ dmgFlat:2 } },
+  { id:'r_lowcal',    name:'低卡便當',   rarity:'common', owner:null, desc:'HP 50以下時，傷害+2',
+    passive:{ dmgIfHpBelow50:2 } },
+  { id:'r_pilates',   name:'皮拉提斯',   rarity:'rare',   owner:null, desc:'HP 50以下時，受傷-3',
+    passive:{ dmgRedIfHpBelow50:3 } },
+  { id:'r_aerobic',   name:'有氧舞蹈',   rarity:'rare',   owner:null, desc:'HP 40以下時，攻擊牌額外觸發一次',
+    passive:{ atkExtraHitIfHpBelow40:true } },
+  { id:'r_yoga',      name:'瑜珈課',     rarity:'common', owner:null, desc:'HP 50以下時，基礎牌效果+2',
+    passive:{ baseCardBonusIfHpBelow50:2 } },
+  { id:'r_challenge', name:'瘦身挑戰',   rarity:'epic',   owner:null, desc:'HP 30以下時，傷害+5',
+    passive:{ dmgIfHpBelow30:5 } },
+
+  // ── 基礎流 ──
+  { id:'r_moisturize',name:'例行保濕',   rarity:'rare',   owner:null, desc:'每張基礎牌觸發兩次',
+    passive:{ baseCardDouble:true } },
+  { id:'r_mask',      name:'面膜',       rarity:'common', owner:null, desc:'基礎牌效果+3，技能牌傷害-3',
+    passive:{ baseCardBonus:3, skillDmgPenalty:3 } },
+  { id:'r_sale',      name:'五折優惠',   rarity:'common', owner:null, desc:'打出兩張基礎牌時，傷害+2',
+    passive:{ dmgIfBase2:2 } },
+  { id:'r_bath',      name:'香氛浴',     rarity:'rare',   owner:null, desc:'打出基礎牌時，受傷減半',
+    passive:{ halfDmgIfBase:true } },
+  { id:'r_shopping',  name:'專櫃血拚',   rarity:'epic',   owner:null, desc:'基礎牌變為全體攻擊',
+    passive:{ baseAtkAoe:true } },
+  { id:'r_serum',     name:'精華液',     rarity:'epic',   owner:null, desc:'基礎牌同時造成傷害和回血',
+    passive:{ baseCardAlsoHeal:true, baseSupAlsoDmg:true } },
+
+  // ── 回復與生存 ──
+  { id:'r_workid',    name:'工作證',     rarity:'common', owner:null, desc:'每次造成的傷害+1',
+    passive:{ dmgFlat:1 } },
+  { id:'r_birthday',  name:'生日大餐',   rarity:'rare',   owner:null, desc:'HP上限+20',
+    onPickup:(G)=>{ G.maxHp+=20; G.hp=Math.min(G.hp+20,G.maxHp); } },
+
+  { id:'r_indulge',   name:'放縱日',     rarity:'common', owner:null, desc:'打出每張基礎輔助牌時，HP上限+2',
+    passive:{ maxHpPerBaseSup:2 } },
+  { id:'r_revive',    name:'愛情御守',   rarity:'epic',   owner:null, desc:'HP歸零時，滿血復活，一局一次',
+    passive:{ reviveOnce:true } },
+
+  // ── 條件觸發 ──
+  { id:'r_drug',      name:'加班費',     rarity:'rare',   owner:null, desc:'每次傷害+2，但額外被魅惑一張手牌',
+    passive:{ dmgFlat:2, charmExtra:1 } },
+  { id:'r_minimal',   name:'碎紙機',     rarity:'rare',   owner:null, desc:'選擇時移除牌組兩張牌',
+    onPickup:(G)=>{ triggerRemoveCard(G, ()=>triggerRemoveCard(G)); } },
+  { id:'r_painkiller',name:'止痛藥',     rarity:'rare',   owner:null, desc:'免疫生理期的效果',
+    passive:{ immunePeriod:true } },
+  { id:'r_nuke',      name:'體重計',     rarity:'epic',   owner:null, desc:'選擇時獲得一張攻擊牌：纖細刻度，造成HP上限20%傷害',
+    onPickup:(G)=>{
+      const nukeCard={ id:'nuke_card', name:'纖細刻度', type:'atk', isSkill:false,
+        desc:'造成HP上限20%傷害', uid:'nuke_'+Date.now(),
+        effect:(G2)=>{ const dmg=Math.floor(G2.maxHp*0.2); dealDmgRaw(G2,dmg); log('纖細刻度！造成 '+dmg+' 傷害。','atk'); }
+      };
+      G.deck.push(nukeCard);
+      log('體重計：獲得攻擊牌「纖細刻度」。','sys');
+    }
+  },
+  { id:'r_letter',    name:'情書',       rarity:'common', owner:null, desc:'無效果', passive:{} },
+  { id:'r_anniversary',name:'紀念日',    rarity:'common', owner:null, desc:'無效果', passive:{} },
+  { id:'r_token',     name:'定情物',     rarity:'rare',   owner:null, desc:'同時持有情書、紀念日時，每次傷害+5，受傷-5',
+    passive:{ loveSetBonus:true } },
+  { id:'r_firstsight',name:'一見鍾情',   rarity:'rare',   owner:null, desc:'每場戰鬥開始時愛意（儀態/亢奮/陰鬱）+2',
+    onBattleStart:(G)=>{
+      if(G.charId==='xiaoxue'){ G.xs_grace=(G.xs_grace||0)+2; renderXsGrace(); log('一見鍾情：儀態 +2。','sup'); }
+      else if(G.charId==='zizi'){ G.zz_fury=(G.zz_fury||0)+2; renderZzFury(); log('一見鍾情：亢奮 +2。','sup'); }
+      else if(G.charId==='lingzi'){ G.lz_depression=(G.lz_depression||0)+2; renderLzDot(); log('一見鍾情：陰鬱 +2。','sup'); }
+    }
+  },
+
+  // ── 小雪專屬 ──
+  { id:'xs_r1', name:'專業形象', rarity:'rare', owner:'xiaoxue',
+    desc:'HP 70%以上時，造成傷害+2，受到傷害-2',
+    passive:{ bonusIfHp70:true } },
+  { id:'xs_r2', name:'安心感', rarity:'common', owner:'xiaoxue',
+    desc:'每次溢補時，儀態額外+1',
+    passive:{ graceOnOverheal:true } },
+  { id:'xs_r3', name:'工作守則', rarity:'rare', owner:'xiaoxue',
+    desc:'每層儀態回復效果變為+7 HP（原為+5）',
+    passive:{ graceHealBoost:2 } },
+  { id:'xs_r4', name:'完美狀態', rarity:'epic', owner:'xiaoxue',
+    desc:'儀態為7時，所有牌效果翻倍',
+    passive:{ graceDoublAt7:true } },
+  { id:'xs_r5', name:'晨間簡報', rarity:'rare', owner:'xiaoxue',
+    desc:'獲得技能牌「晨間簡報」：立即觸發一次儀態回復效果',
+    onPickup:(G)=>{
+      const card={ id:'xs_skill_grace', name:'晨間簡報', type:'sup', isSkill:true,
+        desc:'立即觸發一次儀態回復效果', uid:'xs_grace_'+Date.now(),
+        effect:null, onResolve:(G2)=>{ xsTriggerGrace(G2); log('晨間簡報：觸發儀態回復。','sup'); }
+      };
+      G.deck.push(card);
+      log('晨間簡報：已加入牌組。','sys');
+    }
+  },
+
+  // ── 綾子專屬 ──
+  { id:'lz_r1', name:'刻板印象', rarity:'rare', owner:'lingzi',
+    desc:'每場戰鬥開始時，陰鬱+2',
+    onBattleStart:(G)=>{ G.lz_depression=(G.lz_depression||0)+2; renderLzDot(); log('刻板印象：陰鬱 +2（現在：'+G.lz_depression+'）。','sup'); } },
+  { id:'lz_r2', name:'備用藥盒', rarity:'common', owner:'lingzi',
+    desc:'每回合輔助牌數額外+1陰鬱',
+    passive:{ dotExtraLayer:1 } },
+  { id:'lz_r3', name:'濃縮咖啡', rarity:'epic', owner:'lingzi',
+    desc:'陰鬱10以上時，毒傷翻倍',
+    passive:{ dotDoubleAt10:true } },
+  { id:'lz_r4', name:'未讀訊息', rarity:'rare', owner:'lingzi',
+    desc:'受到傷害時，陰鬱+1',
+    passive:{ dotBurstOnHit:true } },
+  { id:'lz_r5', name:'安眠藥', rarity:'rare', owner:'lingzi',
+    desc:'獲得技能牌「安眠藥」：對全體敵人造成等同陰鬱的傷害',
+    onPickup:(G)=>{
+      const card={ id:'lz_skill_burst', name:'安眠藥', type:'sup', isSkill:true,
+        desc:'對全體敵人造成等同陰鬱的傷害', uid:'lz_burst_'+Date.now(),
+        effect:null, onResolve:(G2)=>{ lzDotBurst(G2); }
+      };
+      G.deck.push(card);
+      log('安眠藥：已加入牌組。','sys');
+    }
+  },
+
+  // ── 子子專屬 ──
+  { id:'zz_r1', name:'慢跑鞋', rarity:'epic', owner:'zizi',
+    desc:'亢奮效果加倍（每次攻擊傷害+亢奮×2）',
+    passive:{ furyDouble:true } },
+  { id:'zz_r2', name:'腎上腺素', rarity:'rare', owner:'zizi',
+    desc:'每次受到傷害，亢奮+1',
+    passive:{ furyOnHit:true } },
+  { id:'zz_r3', name:'運動手環', rarity:'common', owner:'zizi',
+    desc:'亢奮3以上時，攻擊附帶暈眩效果',
+    passive:{ stunIfFury3:true } },
+  { id:'zz_r4', name:'能量飲料', rarity:'common', owner:'zizi',
+    desc:'首回合打出三張攻擊牌，額外獲得+1亢奮',
+    passive:{ furyBonusFirstTurn:true } },
+  { id:'zz_r5', name:'情緒宣洩', rarity:'epic', owner:'zizi',
+    desc:'獲得技能牌「情緒宣洩」：消耗所有亢奮，造成等同層數的額外傷害',
+    onPickup:(G)=>{
+      const card={ id:'zz_skill_burst', name:'情緒宣洩', type:'atk', isSkill:true,
+        desc:'消耗所有亢奮層數，造成等同層數的額外傷害', uid:'zz_burst_'+Date.now(),
+        effect:null, onResolve:(G2)=>{ zzBurstFury(G2); }
+      };
+      G.deck.push(card);
+      log('情緒宣洩：已加入牌組。','sys');
+    }
+  },
+];
+
+let selectedCharId = null;
+let isDemoMode = false;
+let demoRelics = [];
+let demoBossId = null;
+
+function showScreen(id){
+  ['mode-select','demo-select','char-select'].forEach(s=>{
+    const el=document.getElementById(s);
+    if(el) el.classList.toggle('hidden', s!==id);
+  });
+}
+
+function startNormalMode(){
+  isDemoMode=false;
+  showScreen('char-select');
+}
+
+function startDemoMode(){
+  isDemoMode=true;
+  buildDemoUI();
+  showScreen('demo-select');
+}
+
+function backToMode(){
+  showScreen('mode-select');
+}
+
+function buildDemoUI(){
+  // 遺物列表
+  const allRelics=[...RELIC_POOL];
+  const rList=document.getElementById('demo-relic-list');
+  rList.innerHTML='';
+  allRelics.forEach(r=>{
+    const chip=document.createElement('span');
+    chip.className='demo-relic-chip'+(demoRelics.includes(r.id)?' selected':'');
+    chip.textContent=r.name;
+    chip.title=r.desc;
+    chip.onclick=()=>{
+      if(demoRelics.includes(r.id)) demoRelics=demoRelics.filter(x=>x!==r.id);
+      else demoRelics.push(r.id);
+      chip.classList.toggle('selected',demoRelics.includes(r.id));
+    };
+    rList.appendChild(chip);
+  });
+
+  // Boss列表
+  const allBosses=[
+    ...BOSS_DEF.map(b=>({id:b.rivalType||b.name, name:b.name, _def:b})),
+    ...WANGMEI_DEF.map(b=>({id:b.rivalType, name:b.name, _def:b})),
+  ];
+  const bList=document.getElementById('demo-boss-list');
+  bList.innerHTML='';
+  allBosses.forEach(b=>{
+    const chip=document.createElement('span');
+    chip.className='demo-boss-chip'+(demoBossId===b.id?' selected':'');
+    chip.textContent=b.name;
+    chip.onclick=()=>{
+      demoBossId=b.id;
+      document.querySelectorAll('.demo-boss-chip').forEach(c=>c.classList.remove('selected'));
+      chip.classList.add('selected');
+    };
+    bList.appendChild(chip);
+  });
+}
+
+function confirmDemo(){
+  showScreen('char-select');
+}
+
+function selectChar(charId){
+  selectedCharId = charId;
+  document.querySelectorAll('.char-card').forEach(el=>el.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  document.getElementById('char-confirm').disabled = false;
+}
+
+function confirmChar(){
+  if(!selectedCharId) return;
+  document.getElementById('char-select').classList.add('hidden');
+  initGame(selectedCharId);
+}
+
+// ══════════════════════════════════════════════════════
+// 資料定義（敵人）
+// ══════════════════════════════════════════════════════
+const ENEMY_DEF = {
+  client:   { name:'刁蠻客戶',   tag:'tag-n', label:'普通', hpR:[30,50], dmg:6,  stun:false },
+  doc_pile: { name:'緊急文件堆', tag:'tag-n', label:'壓力源', hpR:[25,35], dmg:0, pressure:true },
+  miniboss: { name:'會議室主管', tag:'tag-m', label:'小Boss', hpR:[60,80], dmg:12 },
+};
+const BOSS_DEF = [
+  { name:'公司主管',       tag:'tag-b', label:'Boss',  hpR:[120,140], dmg:13, stunResist:true,
+    portrait:'boss_manager.png', onEntry:'又是你。今天準備好了嗎？' },
+  { name:'特別難搞的客戶', tag:'tag-b', label:'Boss',  hpR:[100,120], dmg:12, resist:true, stunResist:true,
+    portrait:'boss_client.png',  onEntry:'我要客訴。' },
+  { name:'緋緋',           tag:'tag-b', label:'情敵',  hpR:[90,100],  dmg:16, stunResist:true, isRival:true,
+    rivalType:'feifei', portrait:'feifei.png',
+    onEntry:'你又來了呀〜，我最喜歡你的眼神了♡',
+    onHit:'嗚……好痛，你怎麼忍心打我♡',
+    onSkill:'心跳加速了呢，繼續這樣♡',
+    onDead:'下次還要來找人家玩哦♡' },
+  { name:'小筑',           tag:'tag-b', label:'情敵',  hpR:[100,110], dmg:8,  stunResist:false, isRival:true,
+    rivalType:'xiaozhong', portrait:'xiaozhong.png',
+    onEntry:'你……你又來打我嗎？',
+    onHit:'啊♡…好舒服……',
+    onSkill:'打這裡……♡',
+    onDead:'再……再用力一點就好了……',
+    atkBoost:0, atkBoostPer:0.5 },
+  { name:'采衣',           tag:'tag-b', label:'情敵',  hpR:[100,110], dmg:12, stunResist:false, isRival:true,
+    rivalType:'caiyi', portrait:'caiyi.png',
+    onEntry:'哎呀，好久不見呢，最近還好嗎？',
+    onSkillInvincible:'今天心情好，就讓你一次。',
+    onSkillDouble:'笑裡藏刀，聽說過嗎？',
+    onSkillNormal:'看不出采衣笑裡藏著什麼。',
+    onDead:'哼……我下次會準備得更充分的。' },
+];
+
+const WANGMEI_DEF = [
+  { name:'瑞比', tag:'tag-b', label:'網美', hpR:[110,130], dmg:10, stunResist:true, isWangmei:true,
+    rivalType:'ruibi', portrait:'ruibi.png',
+    onEntry:'今、今晚的對手登場了……欸不是，我是說——開始直播！',
+    onHit:'主播受到攻擊——好痛！這不在腳本裡啊！',
+    onSkill:'這波連擊，教科書級別的操作，嗯，我說的。',
+    onDead:'今晚就播到這裡……下播。',
+    hitCount:2 },
+  { name:'婕翎', tag:'tag-b', label:'網美', hpR:[110,130], dmg:8, stunResist:true, isWangmei:true,
+    rivalType:'jieling', portrait:'jieling.png',
+    onEntry:'你來了。我已經把今天的結果算好了。',
+    onHit:'有點意思，繼續。',
+    onSkillCharge:'時機還沒到。',
+    onSkillBurst:'好了，可以結束了。',
+    onDead:'這次算你的。',
+    burstEvery:3, burstDmg:40, chargeDmg:8 },
+  { name:'小莓', tag:'tag-b', label:'網美', hpR:[110,130], dmg:11, stunResist:true, isWangmei:true,
+    rivalType:'xiaomei', portrait:'xiaomei.png',
+    onEntry:'你也想挑戰我？有點自不量力呢。',
+    onHit:'這種程度……還差得遠呢。',
+    onSkill:'在我面前偷懶？真的假的。',
+    onDead:'怎麼可能……我明明比你強的。',
+    supDmgBonus:4 },
+];
+
+function mkEnemy(def, id){
+  const hp=def.hpR[0]+Math.floor(Math.random()*(def.hpR[1]-def.hpR[0]));
+  const r=G.room||1;
+  let dmgMult=1;
+  if(r>=6  && r<=10) dmgMult=1.2;
+  if(r>=11 && r<=15) dmgMult=1.5;
+  if(r>=16 && r<=20) dmgMult=2;
+  const scaledDmg=def.dmg>0 ? Math.round(def.dmg*dmgMult) : 0;
+  return {
+    ...def, id, hp, maxHp:hp, stunned:0, dead:false,
+    dmg: scaledDmg,
+    atkBoost: def.atkBoost||0,
+    dot: 0,
+    burstTurn: 0,
+  };
+}
+
+// ══════════════════════════════════════════════════════
+// 遺物池建構
+// ══════════════════════════════════════════════════════
+function buildRelicPool(charId){
+  // 共通遺物 + 該角色的專屬遺物
+  return RELIC_POOL
+    .filter(r=>r.owner===null || r.owner===charId)
+    .map(r=>({...r}));
+}
+
+// ══════════════════════════════════════════════════════
+// 遊戲狀態
+// ══════════════════════════════════════════════════════
+let G;
+
+function initGame(charId){
+  charId = charId || selectedCharId || 'xiaoxue';
+  const charDef = CHAR_DEF[charId];
+
+  // 起始牌組：直接複製 startDeck，給每張唯一uid
+  const deck = charDef.startDeck.map((c,i)=>({...c, uid:c.id+'_'+i}));
+
+  G = {
+    charId,
+    hp: charDef.hp, maxHp: charDef.hp,
+    atkPower: charDef.atkPower,
+    healPower: charDef.healPower,
+    deck,
+    hand: [],
+    relicPool: buildRelicPool(charId),
+    ownedRelics: [],
+    relicMod: {},
+    room: 1,
+    totalRooms: 20,
+    enemies: [],
+    targeted: null,
+    damageReduction: 0,
+    turn: { atk:0, sup:0, played:0, dmgRamp:0, atkCardBoost:0, dmgRampCount:0, turnNum:1 },
+    battleTurn: 0,
+    pendingSkills: [],
+    gameOver: false,
+    periodActive: false,
+    reviveUsed: false,
+    tripleAtkUsed: false,
+    invincibleUsed: false,
+    removeCardPending: false,
+    // 小雪：儀態
+    xs_grace: 0,
+    xs_mixThisTurn: false,
+    // 綾子：陰鬱
+    lz_depression: 0,
+    // 子子：亢奮
+    zz_fury: 0,
+  };
+
+  // 更新ally卡片顯示
+  const img = document.querySelector('#ally-card .ep-img-area img');
+  if(img){ img.src=charDef.portrait; img.alt=charDef.name; }
+  document.querySelector('#ally-card .ep-name').textContent = charDef.name;
+  document.querySelector('#ally-card .ep-tags .enemy-tag').textContent = charDef.role;
+
+  // 根據角色顯示對應的計數器
+  document.getElementById('xs-grace-counter').style.display = charId==='xiaoxue' ? 'flex' : 'none';
+  document.getElementById('lz-dot-counter').style.display   = charId==='lingzi'  ? 'flex' : 'none';
+  document.getElementById('zz-fury-counter').style.display  = charId==='zizi'    ? 'flex' : 'none';
+
+  if(isDemoMode){
+    // demo模式：直接給選好的遺物，跳過遺物選擇
+    demoRelics.forEach(rid=>{
+      const rel=RELIC_POOL.find(r=>r.id===rid);
+      if(rel) G.ownedRelics.push({...rel});
+    });
+    applyRelicPassives();
+    renderRelicBar();
+    setTimeout(()=>spawnRoom(), 50);
+  } else {
+    // 開頭：先給專屬遺物，再給共通遺物，再進第1間
+    showRelicReward(true, ()=>{
+      setTimeout(()=>{
+        showRelicReward(false, ()=>{
+          setTimeout(()=>spawnRoom(), 50);
+        });
+      }, 50);
+    });
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 房間生成
+// ══════════════════════════════════════════════════════
+function spawnRoom(){
+  G.enemies=[];
+  const r=G.room;
+  const isBoss = r%5===0;
+
+  if(isBoss){
+    let bossDef;
+    if(isDemoMode && demoBossId){
+      bossDef = [...BOSS_DEF,...WANGMEI_DEF].find(b=>(b.rivalType||b.name)===demoBossId) || BOSS_DEF[0];
+    } else if(r===5)  bossDef = BOSS_DEF[0];
+    else if(r===10) bossDef = BOSS_DEF[1];
+    else if(r===15) bossDef = WANGMEI_DEF[Math.floor(Math.random()*WANGMEI_DEF.length)];
+    else {
+      const rivals = BOSS_DEF.filter(b=>b.isRival);
+      bossDef = rivals[Math.floor(Math.random()*rivals.length)];
+    }
+    const b = mkEnemy(bossDef,'boss');
+    G.enemies.push(b);
+    if(bossDef.onEntry) setTimeout(()=>log('「'+bossDef.onEntry+'」','sys'),200);
+    if(bossDef.rivalType==='feifei') G.feifeiEntryCharm=true;
+  } else {
+    const count = r<=5?2:r<=10?2+(Math.random()<0.3?1:0):3;
+    const pool = r<=5
+      ? ['client','doc_pile']
+      : r<=10
+      ? ['client','doc_pile','miniboss']
+      : ['client','miniboss','doc_pile'];
+    for(let i=0;i<count;i++){
+      const t=pool[Math.floor(Math.random()*pool.length)];
+      G.enemies.push(mkEnemy(ENEMY_DEF[t],'e'+i));
+    }
+  }
+
+  G.targeted = G.enemies.find(e=>!e.dead)?.id || null;
+  G.battleTurn = 0;
+  G.tripleAtkUsed = false;
+  G.invincibleUsed = false;
+  G.periodActive = false;
+  // 進新房間清零角色資源
+  G.xs_grace = 0;
+  G.lz_depression = 0;
+  G.zz_fury = 0;
+
+  // 生理期判定（第6間起）
+  if(r>=6){
+    const immune = G.ownedRelics.some(rel=>rel.passive&&rel.passive.immunePeriod);
+    if(immune && r>=6 && Math.random()<0.20){
+      log('止痛藥發揮效果，今天安然無事。','sup');
+    }
+    if(!immune && Math.random()<0.20){
+      G.periodActive=true;
+      const notice=document.getElementById('period-notice');
+      notice.style.display='block';
+      setTimeout(()=>notice.style.display='none',2500);
+      log('今天身體不太對。（生理期：每回合-3HP、傷害-2）','bad');
+    }
+  }
+
+  // 觸發遺物 onBattleStart
+  G.ownedRelics.forEach(rel=>{ if(rel.onBattleStart) rel.onBattleStart(G); });
+
+  shuffleDraw();
+  startTurn();
+  renderAll();
+  log('進入第 '+r+' 間。'+(isBoss?' ⚠ '+G.enemies[0].name:''),'sys');
+}
+
+// ══════════════════════════════════════════════════════
+// 牌組操作
+// ══════════════════════════════════════════════════════
+function shuffleDraw(){ G.hand = []; }
+
+function drawCards(n){
+  const shuffled=[...G.deck].sort(()=>Math.random()-.5);
+  G.hand=shuffled.slice(0,Math.min(n,shuffled.length)).map(c=>({...c,selected:false}));
+}
+
+function startTurn(){
+  G.battleTurn++;
+  G.turn={atk:0,sup:0,played:0,dmgRamp:0,atkCardBoost:0,dmgRampCount:0,turnNum:G.battleTurn};
+  G.pendingSkills=[];
+
+  // 計算本回合 relicMod
+  applyRelicPassives();
+
+  G.caiyiInvincible=false;
+  const caiyi=G.enemies.find(e=>e.rivalType==='caiyi'&&!e.dead);
+  if(caiyi){
+    const roll=Math.random();
+    if(roll<0.25) G.caiyiInvincible=true;
+    else if(roll<0.5) G.caiyiDoubleDmg=true;
+    else G.caiyiDoubleDmg=false;
+  }
+
+  drawCards(5);
+
+  // 加班費：額外魅惑一張
+  if(G.relicMod.charmExtra){
+    const valid=G.hand.filter(c=>!c.charmed);
+    for(let i=0;i<G.relicMod.charmExtra;i++){
+      if(valid.length) valid[Math.floor(Math.random()*valid.length)].charmed=true;
+    }
+  }
+
+  // 緋緋出場回合立即魅惑一張牌
+  if(G.feifeiEntryCharm){
+    G.feifeiEntryCharm=false;
+    const valid=G.hand.filter(c=>!c.charmed);
+    if(valid.length){
+      valid[Math.floor(Math.random()*valid.length)].charmed=true;
+      log('緋緋 一出現就施放魅惑♡','bad');
+    }
+  }
+
+  // 生理期每回合扣血
+  if(G.periodActive){
+    G.hp=Math.max(0,G.hp-3);
+    renderHP();
+    if(G.hp<=0){ checkRevive(); return; }
+  }
+
+  // 過勞遺物：每回合自扣（過勞硬撐、提神飲料）
+  if(G.relicMod && G.relicMod.selfDmgPerTurn && G.relicMod.selfDmgPerTurn>0){
+    G.hp=Math.max(0,G.hp-G.relicMod.selfDmgPerTurn);
+    renderHP();
+    log('過勞：每回合 HP -'+G.relicMod.selfDmgPerTurn+'。','bad');
+    if(G.hp<=0){ checkRevive(); return; }
+  }
+
+  // 香氛浴狀態重置
+  G.halfDmgNextHit=false;
+
+  renderHand();
+  renderCounters();
+}
+
+// ══════════════════════════════════════════════════════
+// 出牌
+// ══════════════════════════════════════════════════════
+function playCard(uid){
+  if(G.gameOver) return;
+  const card=G.hand.find(c=>c.uid===uid);
+  if(!card) return;
+  if(card.charmed){ log('這張牌被魅惑了，無法使用。','bad'); return; }
+  const selectedCount=G.hand.filter(c=>c.selected).length;
+  if(!card.selected && selectedCount>=3){ log('最多選3張牌。','bad'); return; }
+  card.selected=!card.selected;
+  renderHand();
+  renderCounters();
+  updateTriggerHint();
+}
+
+function endTurn(){
+  if(G.gameOver) return;
+  const selected=G.hand.filter(c=>c.selected);
+  if(selected.length===0){ log('請至少選一張牌。','bad'); return; }
+  if(selected.length<3){ log('請選滿 3 張牌後再結束回合。','bad'); return; }
+
+  // 辦公桌月曆：攻也算輔；備忘錄：輔也算攻
+  const m=G.relicMod||{};
+  const effectiveAtk=selected.filter(c=>!c.charmed&&(c.type==='atk'||(m.supCountsAsAtk&&c.type==='sup'))).length;
+  const effectiveSup=selected.filter(c=>!c.charmed&&(c.type==='sup'||(m.atkCountsAsSup&&c.type==='atk'))).length;
+
+  const hasAtk=selected.some(c=>c.type==='atk'&&!c.charmed);
+  if(hasAtk && !getTarget()){ log('請先點選一個目標。','bad'); return; }
+
+  document.getElementById('end-turn-btn').disabled=true;
+
+  G.turn.atk=effectiveAtk;
+  G.turn.sup=effectiveSup;
+  G.turn.played=selected.length;
+  G.pendingSkills=selected.filter(c=>c.isSkill&&c.onResolve&&!c.charmed);
+
+  G.invincibleThisTurn=false;
+
+  // 小莓：偵測本回合真實輔助牌數量
+  const xiaomei=G.enemies&&G.enemies.find(e=>e.rivalType==='xiaomei'&&!e.dead);
+  if(xiaomei){
+    const realSup=selected.filter(c=>c.type==='sup'&&!c.charmed).length;
+    if(realSup>0){
+      G.xiaomeiSupBonus=(G.xiaomeiSupBonus||0)+realSup*(xiaomei.supDmgBonus||4);
+      log('小莓 注意到你在休息，下回合增傷 '+G.xiaomeiSupBonus+'。','bad');
+      if(xiaomei.onHit) log('「'+xiaomei.onHit+'」','sys');
+    }
+  }
+
+  // 迴紋針：攻+輔共出時效果各+2（注入 turn 計數器，不重複算）
+  if(m.mixBonusEach && effectiveAtk>0 && effectiveSup>0){
+    G.turn.atkCardBoost=(G.turn.atkCardBoost||0)+m.mixBonusEach;
+    log('迴紋針：攻輔並出，效果各 +'+m.mixBonusEach+'。','sup');
+  }
+
+  // 平板電腦：≥2攻 且 ≥2輔，所有牌額外觸發一次
+  const doDoubleIfMix2 = m.doubleIfMix2 && effectiveAtk>=2 && effectiveSup>=2;
+  if(doDoubleIfMix2) log('平板電腦：2攻2輔達成，所有牌額外觸發！','sup');
+
+  // 多功能事務機：≥3攻 且 ≥3輔，所有效果+5
+  const doBonusMix3 = m.bonusIfMix3 && effectiveAtk>=3 && effectiveSup>=3;
+  if(doBonusMix3){ G.turn.atkCardBoost=(G.turn.atkCardBoost||0)+m.bonusIfMix3; log('多功能事務機：3攻3輔達成，所有效果 +'+m.bonusIfMix3+'！','sup'); }
+
+  // 過勞遺物：熬夜趕工（第一回合攻擊觸發兩次）
+  const doDoubleAtkFirst = m.doubleAtkFirstTurn && G.battleTurn===1;
+  if(doDoubleAtkFirst){
+    if(m.hpCostFirstTurn){ G.hp=Math.max(0,G.hp-m.hpCostFirstTurn); renderHP(); log('熬夜趕工：HP -'+m.hpCostFirstTurn+'。','bad'); if(G.hp<=0){ checkRevive(); return; } }
+    log('熬夜趕工：第一回合攻擊觸發兩次！','atk');
+  }
+
+  // 過勞遺物：連續加班（≥2攻）
+  if(m.dmgBonusIfAtk2Cost && effectiveAtk>=2){
+    if(m.hpCostIfAtk2){ G.hp=Math.max(0,G.hp-m.hpCostIfAtk2); renderHP(); log('連續加班：HP -'+m.hpCostIfAtk2+'。','bad'); if(G.hp<=0){ checkRevive(); return; } }
+    G.turn.atkCardBoost=(G.turn.atkCardBoost||0)+m.dmgBonusIfAtk2Cost;
+    log('連續加班：≥2攻，每次攻擊 +'+m.dmgBonusIfAtk2Cost+'。','atk');
+  }
+
+  // 過勞遺物：爆肝夜（≥3攻，傷害翻倍）
+  const doBurnout = m.dmgDoubleIfAtk3 && effectiveAtk>=3;
+  if(doBurnout){
+    if(m.hpCostIfAtk3){ G.hp=Math.max(0,G.hp-m.hpCostIfAtk3); renderHP(); log('爆肝夜：HP -'+m.hpCostIfAtk3+'。','bad'); if(G.hp<=0){ checkRevive(); return; } }
+    log('爆肝夜：≥3攻，本回合傷害翻倍！','atk');
+  }
+
+  // 初始化回合攻擊計數器（會議組用）
+  if(!G.turn.atkFireCount) G.turn.atkFireCount=0;
+
+  // 過勞：每回合 HP 扣除在 startTurn 處理（selfDmgPerTurn）
+
+  const supSkills=G.pendingSkills.filter(c=>c.type==='sup');
+  const atkSkills=G.pendingSkills.filter(c=>c.type==='atk');
+
+  selected.forEach(c=>{
+    if(c.charmed) log('♡ '+c.name+' 失效了。','bad');
+    else log((c.type==='atk'?'▶ ':'♦ ')+c.name+(c.isSkill?' [技能]':''), c.type==='atk'?'atk':'sup');
+  });
+
+  supSkills.forEach(s=>s.onResolve(G));
+
+  selected.forEach(c=>{
+    if(!c.effect||c.charmed) return;
+    const isBase=!c.isSkill;
+    const isAtk=c.type==='atk';
+
+    // 香氛浴：打出基礎牌時受到傷害減半（下一次受傷）
+    if(isBase && m.halfDmgIfBase) G.halfDmgNextHit=true;
+
+    // 面膜/瑜珈課：基礎牌效果加成（每張牌前臨時加，觸發後還原）
+    let baseBonusAdded=0;
+    if(isBase){
+      if(m.baseCardBonus){ baseBonusAdded+=m.baseCardBonus; }
+      if(m.baseCardBonusIfHpBelow50 && G.hp<=50){ baseBonusAdded+=m.baseCardBonusIfHpBelow50; }
+      if(baseBonusAdded) G.turn.atkCardBoost=(G.turn.atkCardBoost||0)+baseBonusAdded;
+    }
+
+    // 專櫃血拚：基礎攻擊改為全體
+    if(isBase && isAtk && m.baseAtkAoe){
+      aoeDmg(G, G.atkPower);
+      if(m.baseCardAlsoHeal){ heal(G, G.healPower); log('精華液：回復 '+G.healPower+' HP。','sup'); }
+      if(m.selfDmgPerAtk){ G.hp=Math.max(0,G.hp-m.selfDmgPerAtk); renderHP(); }
+      G.turn.atkFireCount++;
+    } else if(isBase && isAtk){
+      c.effect(G);
+      if(m.baseCardAlsoHeal){ heal(G, G.healPower); log('精華液：回復 '+G.healPower+' HP。','sup'); }
+      if(m.selfDmgPerAtk){ G.hp=Math.max(0,G.hp-m.selfDmgPerAtk); renderHP(); }
+      G.turn.atkFireCount++;
+      if(m.atkExtraHitIfHpBelow40 && G.hp<=40){ c.effect(G); G.turn.atkFireCount++; log('有氧舞蹈：額外觸發！','atk'); }
+      if(doDoubleAtkFirst){ c.effect(G); G.turn.atkFireCount++; }
+      if(doDoubleIfMix2){ c.effect(G); G.turn.atkFireCount++; }
+    } else if(isBase && !isAtk){
+      c.effect(G);
+      // 精華液：基礎輔助牌也造成傷害
+      if(m.baseSupAlsoDmg){ dealDmg(G, G.atkPower); log('精華液：輔助牌附帶 '+G.atkPower+' 點傷害。','atk'); }
+      if(m.baseCardAlsoHeal){ heal(G, G.healPower); log('精華液：回復 '+G.healPower+' HP。','sup'); }
+      // 放縱日
+      if(m.maxHpPerBaseSup){ G.maxHp+=m.maxHpPerBaseSup; log('放縱日：HP上限 +'+m.maxHpPerBaseSup+'（現在：'+G.maxHp+'）。','sup'); }
+      if(doDoubleIfMix2){ c.effect(G); if(m.baseSupAlsoDmg){ dealDmg(G, G.atkPower); } }
+    } else {
+      // 技能牌
+      c.effect(G);
+      G.turn.atkFireCount++;
+    }
+
+    // 還原基礎牌暫時加成
+    if(baseBonusAdded) G.turn.atkCardBoost=Math.max(0,(G.turn.atkCardBoost||0)-baseBonusAdded);
+  });
+
+  atkSkills.forEach(s=>s.onResolve(G));
+
+  // 年終獎金：選出的牌裡剛好只有一張攻擊牌時，該牌再觸發兩次
+  const selectedAtk=selected.filter(c=>c.type==='atk'&&!c.charmed);
+  if(m.tripleOnSingleAtk && selectedAtk.length===1 && !G.tripleAtkUsed){
+    G.tripleAtkUsed=true;
+    const atkCard=selectedAtk[0];
+    G.turn.atk+=2;
+    log('年終獎金！'+atkCard.name+' 再觸發兩次。','atk');
+    for(let i=0;i<2;i++){
+      if(atkCard.effect) atkCard.effect(G);
+      if(atkCard.isSkill && atkCard.onResolve) atkCard.onResolve(G);
+    }
+  }
+
+  // 未讀訊息：打出輔助牌時毒層+1
+  if(m.dotOnSup && G.turn.sup>0){
+    const t=getTarget();
+    if(t){ t.dot=(t.dot||0)+(m.dotOnSup*G.turn.sup); log('未讀訊息：施毒 +'+(m.dotOnSup*G.turn.sup)+' 層。','sup'); }
+  }
+
+  // 雷射筆 stunOnMix
+  if(m.stunOnMix && effectiveAtk>0 && effectiveSup>0){
+    stunTarget(G);
+    log('雷射筆：攻輔並出，施加暈眩。','sup');
+  }
+
+  // 專案會議：每張攻擊牌額外觸發一次
+  if(m.atkCardExtraHit){
+    selected.filter(c=>c.type==='atk'&&!c.charmed&&c.effect&&!c.isSkill).forEach(c=>{
+      log('專案會議：追加 '+c.name,'atk');
+      G.turn.atkFireCount++;
+      c.effect(G);
+    });
+  }
+
+  // 緊急檢討會：≥2攻時，每張攻擊牌額外觸發一次
+  if(m.atkCardExtraHitIfAtk2 && effectiveAtk>=2){
+    selected.filter(c=>c.type==='atk'&&!c.charmed&&c.effect&&!c.isSkill).forEach(c=>{
+      log('緊急檢討會：≥2攻，追加 '+c.name,'atk');
+      G.turn.atkFireCount++;
+      c.effect(G);
+    });
+  }
+
+  // 例行保濕：每張基礎牌觸發兩次（在主要觸發後補第二次）
+  if(m.baseCardDouble){
+    selected.filter(c=>!c.charmed&&!c.isSkill&&c.effect).forEach(c=>{
+      log('例行保濕：'+c.name+' 額外觸發。',c.type==='atk'?'atk':'sup');
+      if(c.type==='atk') G.turn.atkFireCount++;
+      c.effect(G);
+    });
+  }
+
+  G.pendingSkills=[];
+  G.hand=[];
+  renderAll();
+
+  // 小雪：結算攻+輔儀態累積
+  if(G.charId==='xiaoxue'){
+    xsApplyGraceOnTurnEnd(G);
+  }
+
+  // 綾子：回合結束看sup count疊陰鬱
+  if(G.charId==='lingzi' && G.turn.sup>0){
+    const add=G.turn.sup+(G.relicMod&&G.relicMod.dotExtraLayer?G.relicMod.dotExtraLayer:0);
+    G.lz_depression=(G.lz_depression||0)+add;
+    log('陰鬱 +'+add+'（輔助 ×'+G.turn.sup+'）（現在：'+G.lz_depression+'）','sys');
+    renderLzDot();
+  }
+
+  // 子子：回合結束看atk count疊亢奮
+  if(G.charId==='zizi' && G.turn.atk>0){
+    G.zz_fury=(G.zz_fury||0)+G.turn.atk;
+    log('亢奮 +'+G.turn.atk+'（攻擊 ×'+G.turn.atk+'）（現在：'+G.zz_fury+'）','sys');
+    renderZzFury();
+  }
+
+  // 子子：首回合三攻額外亢奮
+  if(G.charId==='zizi'){
+    const m = G.relicMod || {};
+    if(m.furyBonusFirstTurn && G.battleTurn===1 && selected.filter(c=>c.type==='atk'&&!c.charmed).length===3){
+      G.zz_fury = (G.zz_fury||0) + 1;
+      log('能量飲料：首回合三攻，亢奮額外+1（現在：'+G.zz_fury+'）','sys');
+      renderZzFury();
+    }
+  }
+
+  setTimeout(()=>enemyTurn(), 400);
+}
+
+
+// ══════════════════════════════════════════════════════
+// 小雪：儀態機制
+// ══════════════════════════════════════════════════════
+function xsMixCheck(G){
+  // 每回合第一次偵測到攻+輔共存時加儀態（在endTurn時統一判斷，此函式供牌效果呼叫）
+}
+
+function xsApplyGraceOnTurnEnd(G){
+  // endTurn時：本回合有打出攻+輔，儀態+1
+  const sel = G.hand ? [] : [];  // hand已清空，用turn計數
+  const hasAtk = G.turn.atk > 0;
+  const hasSup = G.turn.sup > 0;
+  if(hasAtk && hasSup){
+    G.xs_grace = (G.xs_grace||0) + 1;
+    log('攻輔並出，儀態 +1（現在：'+G.xs_grace+'）','sys');
+    renderXsGrace();
+  }
+}
+
+function xsTriggerGrace(G){
+  // 回合開始觸發儀態回復（也可由技能牌主動觸發）
+  const grace = G.xs_grace || 0;
+  if(grace <= 0) return;
+  const m = G.relicMod || {};
+  const perGrace = 5 + (m.graceHealBoost || 0);
+  const healAmt = grace * perGrace;
+  const before = G.hp;
+  G.hp = Math.min(G.maxHp, G.hp + healAmt);
+  const actual = G.hp - before;
+  const overflow = healAmt - actual;
+  if(actual > 0) log('儀態回復 '+actual+' HP（儀態×'+perGrace+'）','sup');
+  if(overflow > 0){
+    const dmg = Math.floor(overflow);
+    if(dmg > 0){
+      const t = getTarget();
+      if(t){
+        applyDmg(t, dmg, false);
+        log('溢補 '+dmg+' 點對敵人造成傷害。','atk');
+        // 安心感：溢補時儀態+1
+        if(m.graceOnOverheal){
+          G.xs_grace++;
+          log('安心感：儀態 +1（現在：'+G.xs_grace+'）','sys');
+          renderXsGrace();
+        }
+      }
+    }
+  }
+  renderHP();
+  renderXsGrace();
+}
+
+function renderLzDot(){
+  const el = document.getElementById('lz-dot-val');
+  if(el) el.textContent = G.lz_depression || 0;
+}
+
+function renderXsGrace(){
+  const el = document.getElementById('xs-grace-val');
+  if(el) el.textContent = G.xs_grace || 0;
+}
+
+// ══════════════════════════════════════════════════════
+// 綾子：毒傷爆發
+// ══════════════════════════════════════════════════════
+function lzDotBurst(G){
+  const dep=G.lz_depression||0;
+  if(dep<=0){ log('陰鬱為0，無效果。','sys'); return; }
+  const alive=G.enemies.filter(e=>!e.dead);
+  if(!alive.length) return;
+  alive.forEach(e=>{
+    e.hp=Math.max(0,e.hp-dep);
+    showDmg(e.id,'☠'+dep,false);
+    log(e.name+' 受到陰鬱爆發 '+dep+' 傷害（陰鬱不消耗）。','atk');
+    if(e.hp<=0){
+      e.dead=true;
+      if(e.onDead) log('「'+e.onDead+'」','sys');
+      else log(e.name+' 在陰鬱中倒下了。','sys');
+      G.ownedRelics.forEach(rel=>{ if(rel.onEnemyDead) rel.onEnemyDead(G); });
+    }
+  });
+  renderEnemies();
+  checkRoomClear();
+}
+
+// ══════════════════════════════════════════════════════
+// 子子：亢奮機制
+// ══════════════════════════════════════════════════════
+function renderZzFury(){
+  const el = document.getElementById('zz-fury-val');
+  if(el) el.textContent = G.zz_fury || 0;
+}
+
+function multiHitFury(G, base, times, extraFuryPerHit){
+  let total = 0;
+  const fury = G.zz_fury || 0;
+  const m = G.relicMod || {};
+  const furyMult = m.furyDouble ? 2 : 1;
+  for(let i=0; i<times; i++){
+    const t = getTarget();
+    if(!t) break;
+    let dmg = base + calcDmgBonus(base, t) + Math.floor(fury * furyMult);
+    if(t.resist) dmg = Math.max(1, dmg-2);
+    const fd = Math.max(1, dmg);
+    applyDmg(t, fd, false);
+    log(t.name+' 受到 '+fd+' 點傷害。','atk');
+    total += fd;
+    if(extraFuryPerHit){ G.zz_fury++; }
+    // 暈眩判定
+    if(m.stunIfFury3 && (G.zz_fury||0)>=3 && !t.stunResist){
+      t.stunned=1;
+      log(t.name+' 被亢奮暈眩！','sup');
+    }
+  }
+  renderZzFury();
+  return total;
+}
+
+function zzBurstFury(G){
+  const fury = G.zz_fury || 0;
+  if(fury <= 0){ log('亢奮為0，無效果。','sys'); return; }
+  const t = getTarget();
+  if(!t){ log('請先選擇目標。','bad'); return; }
+  const dmg = Math.max(1, fury);
+  applyDmg(t, dmg, false);
+  log('情緒宣洩！消耗'+fury+'層亢奮，造成 '+dmg+' 傷害。','atk');
+  G.zz_fury = 0;
+  renderZzFury();
+}
+
+// ══════════════════════════════════════════════════════
+// 戰鬥效果
+// ══════════════════════════════════════════════════════
+function getTarget(){
+  return G.enemies.find(e=>e.id===G.targeted&&!e.dead);
+}
+
+// 直接傷害（不走遺物加成，體重計用）
+function dealDmgRaw(G, dmg){
+  const t=getTarget();
+  if(!t){ log('請先選擇目標。','bad'); return 0; }
+  applyDmg(t, Math.max(1,dmg), false);
+  return dmg;
+}
+
+// 基礎單體傷害（含遺物加成）
+function dealDmg(G, base){
+  const t=getTarget();
+  if(!t){ log('請先選擇目標。','bad'); return 0; }
+
+  const m=G.relicMod;
+  let dmg=base+(G.turn.atkCardBoost||0);
+
+  // 子子亢奮加成
+  if(G.charId==='zizi'){
+    const fury = G.zz_fury || 0;
+    const furyMult = m.furyDouble ? 2 : 1;
+    dmg += Math.floor(fury * furyMult);
+  }
+
+  // 進度說明會：遞增計數
+  if(m.dmgRampPerAtk){
+    G.turn.dmgRampCount=(G.turn.dmgRampCount||0)+1;
+    dmg+=(G.turn.dmgRampCount-1)*m.dmgRampPerAtk;
+    if(G.turn.dmgRampCount>1) log('進度說明會：傷害遞增 +'+(G.turn.dmgRampCount-1)+'。','atk');
+  }
+
+  // 攻擊次數追蹤（會議組）
+  if(G.turn.atkFireCount==null) G.turn.atkFireCount=0;
+  const thisHitIdx=G.turn.atkFireCount;
+
+  dmg+=calcDmgBonus(dmg,t);
+  if(t.resist) dmg=Math.max(1,dmg-2);
+
+  // 完美狀態：儀態7時效果翻倍
+  if(G.charId==='xiaoxue' && m.graceDoublAt7 && (G.xs_grace||0)>=7){
+    dmg = dmg * 2;
+  }
+
+  // 冷萃咖啡：自扣HP
+  if(m.selfDmgPerHit){
+    G.hp=Math.max(0,G.hp-m.selfDmgPerHit);
+    renderHP();
+    if(G.hp<=0){ checkRevive(); return dmg; }
+  }
+
+  // 黑咖啡：每次攻擊 HP-1
+  if(m.selfDmgPerAtk){
+    G.hp=Math.max(0,G.hp-m.selfDmgPerAtk);
+    renderHP();
+    if(G.hp<=0){ checkRevive(); return dmg; }
+  }
+
+  const finalDmg=Math.max(1,dmg);
+  const hit=applyDmg(t, finalDmg, false);
+  if(hit!==false) log(t.name+' 受到 '+finalDmg+' 點傷害。','atk');
+
+  // 攻擊次數+1
+  G.turn.atkFireCount++;
+
+  // 會議組：季末衝刺（第4次攻擊，idx從0計，第3次是第4次）
+  if(m.dmgBonus4thAtk && G.turn.atkFireCount===4){
+    const bonus4=m.dmgBonus4thAtk;
+    const t2=getTarget(); if(t2){ applyDmg(t2,bonus4,false); log('季末衝刺！第四次攻擊額外 +'+bonus4+' 傷害。','atk'); }
+  }
+  // 會議組：死線日（第6次攻擊）
+  if(m.dmgBonus6thAtk && G.turn.atkFireCount===6){
+    const bonus6=m.dmgBonus6thAtk;
+    const t3=getTarget(); if(t3){ applyDmg(t3,bonus6,false); log('死線日！第六次攻擊額外 +'+bonus6+' 傷害。','atk'); }
+  }
+
+  // 子子：打出攻擊牌後若有暈眩遺物，判定暈眩
+  if(G.charId==='zizi' && m.stunIfFury3 && (G.zz_fury||0)>=3 && !t.stunResist && !t.dead){
+    t.stunned=1;
+    log(t.name+' 被亢奮暈眩！','sup');
+    renderEnemies();
+  }
+
+  // 緊急檢討會：≥2攻時，攻擊牌額外觸發（僅觸發一次追蹤，避免無限循環）
+  // 實際在 endTurn 段處理
+
+  return finalDmg;
+}
+
+function aoeDmg(G, base){
+  G.enemies.forEach(e=>{
+    if(e.dead) return;
+    let dmg=base+(G.turn.atkCardBoost||0)+calcDmgBonus(base,e);
+    if(e.resist) dmg=Math.max(1,dmg-2);
+    if(G.turn.dmgRamp>0){
+      G.turn.dmgRampCount=(G.turn.dmgRampCount||0)+1;
+      dmg+=G.turn.dmgRampCount;
+    }
+    const fd=Math.max(1,dmg);
+    const hit=applyDmg(e, fd, false);
+    if(hit!==false) log(e.name+' 受到 '+fd+' 點傷害。','atk');
+  });
+  renderEnemies();
+}
+
+// 子子多連擊（回傳總傷害）
+function multiHit(G, base, times){
+  let total=0;
+  const ramp=G.relicMod.multiHitRamp||0;
+  for(let i=0;i<times;i++){
+    const t=getTarget();
+    if(!t) break;
+    let dmg=base+(G.turn.atkCardBoost||0)+calcDmgBonus(base,t)+(ramp*i);
+    if(t.resist) dmg=Math.max(1,dmg-2);
+    if(G.turn.dmgRamp>0){
+      G.turn.dmgRampCount=(G.turn.dmgRampCount||0)+1;
+      dmg+=G.turn.dmgRampCount;
+    }
+    const fd2=Math.max(1,dmg);
+    const hit2=applyDmg(t, fd2, false);
+    if(hit2!==false) log(t.name+' 受到 '+fd2+' 點傷害。','atk');
+    total+=fd2;
+  }
+  return total;
+}
+
+// DOT施加（單體）
+function applyDot(G, layers){
+  if(G.charId!=='lingzi') return;
+  const extra=G.relicMod?G.relicMod.dotExtraLayer:0;
+  G.lz_depression=(G.lz_depression||0)+layers+extra;
+  renderLzDot();
+}
+
+// DOT施加（全體）
+function applyDotAll(G, layers){
+  if(G.charId!=='lingzi') return;
+  const extra=G.relicMod?G.relicMod.dotExtraLayer:0;
+  G.lz_depression=(G.lz_depression||0)+layers+extra;
+  renderLzDot();
+}
+
+// 陰鬱加倍
+function doubleDot(G){
+  if(G.charId!=='lingzi') return;
+  G.lz_depression=(G.lz_depression||0)*2;
+  renderLzDot();
+}
+
+function applyDmg(e, dmg, crit){
+  if(e.rivalType==='caiyi' && G.caiyiInvincible){
+    showDmg(e.id, '✦無敵', false);
+    log('采衣 優雅地側身。','sup');
+    return false;
+  }
+  showDmg(e.id, (crit?'✦':'')+dmg, crit);
+  e.hp=Math.max(0,e.hp-dmg);
+
+  if(e.rivalType==='xiaozhong' && !e.dead && e.hp>0){
+    const boost=Math.round((e.dmg||8)*e.atkBoostPer);
+    e.atkBoost=(e.atkBoost||0)+boost;
+    log('小筑 好像很享受，攻擊力提升。','bad');
+    if(e.onHit) log('「'+e.onHit+'」','sys');
+  } else if(e.rivalType==='caiyi' && !e.dead && e.hp>0){
+    log('采衣 笑著輕哼一聲。','sys');
+  } else if(e.rivalType==='feifei' && !e.dead && e.hp>0){
+    if(e.onHit) log('「'+e.onHit+'」','sys');
+  } else if(e.isWangmei && !e.dead && e.hp>0){
+    if(e.onHit) log('「'+e.onHit+'」','sys');
+  }
+
+  if(e.hp<=0){
+    e.dead=true;
+    if(e.onDead) log('「'+e.onDead+'」','sys');
+    else log(e.name+' 被擊敗了。','sys');
+    // 遺物 onEnemyDead
+    G.ownedRelics.forEach(rel=>{ if(rel.onEnemyDead) rel.onEnemyDead(G); });
+    // 自動轉移目標到下一個存活敵人
+    if(G.targeted===e.id){
+      const next=G.enemies.find(x=>!x.dead);
+      G.targeted=next?next.id:null;
+      if(next) log('目標轉移至 '+next.name+'。','sys');
+    }
+    checkRoomClear();
+  }
+  renderEnemies();
+}
+
+function heal(G, amt){
+  const bonus=G.relicMod?calcHealBonus():0;
+  G.hp=Math.min(G.maxHp,G.hp+amt+bonus);
+  renderHP();
+}
+
+function stunTarget(G){
+  const t=getTarget();
+  if(!t){ return false; }
+  if(t.stunResist){ log(t.name+' 抵抗了暈眩。','bad'); return false; }
+  t.stunned=1;
+  renderEnemies();
+  return true;
+}
+
+function showDmg(eid, val, crit){
+  const el=document.querySelector('#enemy-portraits [data-eid="'+eid+'"]');
+  if(!el) return;
+  const d=document.createElement('div');
+  d.className='dmg-float';
+  d.textContent=val;
+  d.style.color=crit?'#ffaa44':'#cc66ee';
+  el.querySelector('.ep-img-area').appendChild(d);
+  setTimeout(()=>d.remove(),700);
+}
+
+// ══════════════════════════════════════════════════════
+// 敵人回合
+// ══════════════════════════════════════════════════════
+function enemyTurn(){
+  // 綾子陰鬱回合結算（敵人行動前）
+  if(G.charId==='lingzi' && (G.lz_depression||0)>0){
+    const m=G.relicMod||{};
+    let dep=G.lz_depression;
+    let dotDmg=dep;
+    // 遺物傷害加成
+    dotDmg+=m.dmgFlat||0;
+    // 濃縮咖啡：陰鬱10以上時毒傷加倍
+    if(m.dotDoubleAt10 && dep>=10) dotDmg=dotDmg*2;
+    dotDmg=Math.max(1,dotDmg);
+    G.enemies.filter(e=>!e.dead).forEach(e=>{
+      e.hp=Math.max(0,e.hp-dotDmg);
+      showDmg(e.id,'☠'+dotDmg,false);
+      if(e.hp<=0){
+        e.dead=true;
+        if(e.onDead) log('「'+e.onDead+'」','sys');
+        else log(e.name+' 在陰鬱中倒下了。','sys');
+        G.ownedRelics.forEach(rel=>{ if(rel.onEnemyDead) rel.onEnemyDead(G); });
+        checkRoomClear();
+      }
+    });
+    log('陰鬱蔓延，全體承受 '+dotDmg+' 傷害。','atk');
+    // 陰鬱不減層
+    renderLzDot();
+    renderEnemies();
+    if(G.enemies.every(e=>e.dead)) return;
+  }
+
+  G.enemies.forEach(e=>{
+    if(e.dead) return;
+
+    if(e.stunned>0){
+      e.stunned--;
+      log(e.name+' 暈眩中，跳過行動。','sup');
+      return;
+    }
+
+    if(e.pressure){
+      let dmg=3;
+      const red=calcDmgReduction(false);
+      dmg=Math.max(1,dmg-red);
+      G.hp=Math.max(0,G.hp-dmg);
+      log(e.name+' 施加壓力，損失 '+dmg+' HP。','bad');
+      if(G.relicMod.thorns){ applyDmg(e,G.relicMod.thorns,false); log('隔音耳機 '+G.relicMod.thorns+'。','atk'); }
+      renderHP();
+      if(G.hp<=0){ checkRevive(); return; }
+      return;
+    }
+
+    if(e.rivalType==='feifei' && !e.dead){
+      G.charmNext=(G.charmNext||0)+1;
+      log('緋緋 施放魅惑。','bad');
+      if(e.onSkill) log('「'+e.onSkill+'」','sys');
+    }
+
+    if(e.rivalType==='xiaozhong' && !e.dead){
+      if(Math.random()<0.25){
+        G.xiaozhongTaunt=true;
+        if(e.onSkill) log('「'+e.onSkill+'」','sys');
+      }
+    }
+
+    if(e.rivalType==='caiyi' && !e.dead){
+      if(G.caiyiInvincible){
+        if(e.onSkillInvincible) log('「'+e.onSkillInvincible+'」','sys');
+        log('攻擊被采衣躲過了。（本回合傷害無效）','bad');
+        G.caiyiInvincible=false;
+        const redInv=calcDmgReduction(true);
+        const dmgInv=Math.max(1,(e.dmg||12)-redInv);
+        G.hp=Math.max(0,G.hp-dmgInv);
+        log('采衣 趁隙反擊，造成 '+dmgInv+' 傷害。','bad');
+        if(G.relicMod.thorns) applyDmg(e,G.relicMod.thorns,false);
+        renderHP();
+        if(G.hp<=0){ checkRevive(); return; }
+      } else {
+        const baseDmg=e.dmg||12;
+        const isDouble=G.caiyiDoubleDmg;
+        let dmg=isDouble ? baseDmg*2 : baseDmg;
+        const red=calcDmgReduction(true);
+        dmg=Math.max(1,dmg-red);
+        G.caiyiDoubleDmg=false;
+        G.hp=Math.max(0,G.hp-dmg);
+        if(G.relicMod.thorns){ applyDmg(e,G.relicMod.thorns,false); }
+        if(isDouble){
+          if(e.onSkillDouble) log('「'+e.onSkillDouble+'」','sys');
+          log('采衣 造成 '+dmg+' 傷害。','bad');
+        } else {
+          if(e.onSkillNormal) log('「'+e.onSkillNormal+'」','sys');
+          log('采衣 造成 '+dmg+' 傷害。','bad');
+        }
+        renderHP();
+        if(G.hp<=0){ checkRevive(); return; }
+      }
+      return;
+    }
+
+    // 瑞比：連擊，次數固定不增加
+    if(e.rivalType==='ruibi' && !e.dead){
+      e.hitCount = e.hitCount||2;
+      if(e.onSkill) log('「'+e.onSkill+'」','sys');
+      const isBoss=true;
+      const red=calcDmgReduction(isBoss);
+      let total=0;
+      for(let i=0;i<e.hitCount;i++){
+        let dmg=Math.max(1,(e.dmg||10)-red);
+        G.hp=Math.max(0,G.hp-dmg);
+        total+=dmg;
+        if(G.hp<=0) break;
+      }
+      log('瑞比 連擊 '+e.hitCount+' 次，共造成 '+total+' 傷害。','bad');
+      // hitCount不增加
+      if(G.relicMod.thorns){ for(let i=0;i<e.hitCount;i++) applyDmg(e,G.relicMod.thorns,false); }
+      renderHP();
+      if(G.hp<=0){ checkRevive(); return; }
+      return;
+    }
+
+    // 婕翎：蓄力3回合爆發
+    if(e.rivalType==='jieling' && !e.dead){
+      e.chargeCount=(e.chargeCount||0)+1;
+      const isBoss=true;
+      const red=calcDmgReduction(isBoss);
+      if(e.chargeCount<e.burstEvery){
+        log('婕翎 蓄力中（'+e.chargeCount+'/'+e.burstEvery+'）。','sys');
+        if(e.onSkillCharge) log('「'+e.onSkillCharge+'」','sys');
+        let dmg=Math.max(1,(e.chargeDmg||8)-red);
+        G.hp=Math.max(0,G.hp-dmg);
+        log('婕翎 造成 '+dmg+' 傷害。','bad');
+        renderHP();
+        if(G.hp<=0){ checkRevive(); return; }
+      } else {
+        e.chargeCount=0;
+        if(e.onSkillBurst) log('「'+e.onSkillBurst+'」','sys');
+        let dmg=Math.max(1,(e.burstDmg||40)-red);
+        G.hp=Math.max(0,G.hp-dmg);
+        log('婕翎 爆發！造成 '+dmg+' 傷害！','bad');
+        if(G.relicMod.thorns) applyDmg(e,G.relicMod.thorns,false);
+        renderHP();
+        if(G.hp<=0){ checkRevive(); return; }
+      }
+      return;
+    }
+
+    // 小莓：玩家上回合出輔助牌時增傷
+    if(e.rivalType==='xiaomei' && !e.dead){
+      const isBoss=true;
+      const red=calcDmgReduction(isBoss);
+      const supBonus=(G.xiaomeiSupBonus||0);
+      G.xiaomeiSupBonus=0;
+      let dmg=Math.max(1,(e.dmg||11)+supBonus-red);
+      if(supBonus>0){
+        if(e.onSkill) log('「'+e.onSkill+'」','sys');
+        log('小莓 受輔助加持，造成 '+dmg+' 傷害（含+'+supBonus+'）。','bad');
+      } else {
+        log('小莓 造成 '+dmg+' 傷害。','bad');
+      }
+      G.hp=Math.max(0,G.hp-dmg);
+      if(G.relicMod.thorns) applyDmg(e,G.relicMod.thorns,false);
+      renderHP();
+      if(G.hp<=0){ checkRevive(); return; }
+      return;
+    }
+
+    let rawDmg=(e.dmg||0)+Math.round(e.atkBoost||0);
+    if(rawDmg>0){
+      if(G.invincibleThisTurn){ return; }
+      const isBoss=(e.label==='Boss'||e.label==='情敵'||e.label==='網美Boss');
+      const red=calcDmgReduction(isBoss);
+      let dmg=Math.max(1,rawDmg-red);
+      // 香氛浴：若本回合打了基礎牌，受到傷害減半
+      if(G.halfDmgNextHit){ dmg=Math.max(1,Math.floor(dmg/2)); log('香氛浴：傷害減半！','sup'); G.halfDmgNextHit=false; }
+      G.hp=Math.max(0,G.hp-dmg);
+      log(e.name+' 造成 '+dmg+' 傷害。'+(red>0?' (減傷 '+red+')':''),'bad');
+
+      // 子子：受傷亢奮+1
+      if(G.charId==='zizi' && G.relicMod && G.relicMod.furyOnHit){
+        G.zz_fury=(G.zz_fury||0)+1;
+        log('腎上腺素：受傷，亢奮 +1（現在：'+G.zz_fury+'）','sys');
+        renderZzFury();
+      }
+
+      // 綾子未讀訊息：受傷時陰鬱+1
+      if(G.charId==='lingzi' && G.relicMod && G.relicMod.dotBurstOnHit){
+        G.lz_depression=(G.lz_depression||0)+1;
+        log('未讀訊息：受傷，陰鬱 +1（現在：'+G.lz_depression+'）','sys');
+        renderLzDot();
+      }
+
+      if(e.rivalType==='feifei'){
+        const heal=Math.floor(dmg/2);
+        e.hp=Math.min(e.maxHp,e.hp+heal);
+        log('緋緋 吸收生命，回復 '+heal+' HP。','bad');
+        renderEnemies();
+      }
+      if(G.relicMod.thorns){ applyDmg(e,G.relicMod.thorns,false); log('隔音耳機 '+G.relicMod.thorns+'。','atk'); }
+      renderHP();
+      if(G.hp<=0){ checkRevive(); return; }
+    }
+  });
+
+  // 減傷狀態消耗（舊邏輯保留）
+  if(G.damageReduction>0) G.damageReduction--;
+
+  // 遺物 onTurnEnd
+  G.ownedRelics.forEach(rel=>{ if(rel.onTurnEnd) rel.onTurnEnd(G); });
+
+  // 安眠藥：每回合-1HP
+  if(G.relicMod.selfDotPerTurn){
+    G.hp=Math.max(0,G.hp-G.relicMod.selfDotPerTurn);
+    renderHP();
+    if(G.hp<=0){ checkRevive(); return; }
+  }
+
+  renderEnemies();
+
+  log('── 新回合 ──','sys');
+
+  // 小雪：回合開始觸發儀態回復
+  if(G.charId==='xiaoxue'){
+    xsTriggerGrace(G);
+  }
+
+  drawCards(5);
+
+  if(G.charmNext>0){
+    const valid=G.hand.filter(c=>!c.charmed);
+    const cnt=Math.min(G.charmNext, valid.length);
+    for(let i=0;i<cnt;i++){
+      const pick=valid[Math.floor(Math.random()*valid.length)];
+      if(pick) pick.charmed=true;
+    }
+    G.charmNext=0;
+  }
+
+  if(G.xiaozhongTaunt){
+    G.xiaozhongTaunt=false;
+    const tauntCard={ id:'xiaozhong_taunt', name:'打屁股♡', type:'atk', isSkill:false,
+      desc:'造成 5 點傷害', uid:'taunt_0',
+      effect:(G2)=>dealDmg(G2,5) };
+    G.hand=Array.from({length:5},(_,i)=>({...tauntCard, uid:'taunt_'+i, selected:false}));
+    log('小筑 挺起她的翹臀！手牌固定為5張攻擊牌。','bad');
+    log('「打這裡……♡」','sys');
+  }
+
+  // 加班費：新一回合的魅惑
+  if(G.relicMod.charmExtra){
+    const valid=G.hand.filter(c=>!c.charmed);
+    for(let i=0;i<G.relicMod.charmExtra;i++){
+      if(valid.length) valid[Math.floor(Math.random()*valid.length)].charmed=true;
+    }
+  }
+
+  G.turn={atk:0,sup:0,played:0,dmgRamp:0,atkCardBoost:0,dmgRampCount:0,turnNum:G.battleTurn+1};
+  G.battleTurn++;
+  G.pendingSkills=[];
+  document.getElementById('end-turn-btn').disabled=false;
+  applyRelicPassives();
+  renderAll();
+}
+
+// ══════════════════════════════════════════════════════
+// 房間通關
+// ══════════════════════════════════════════════════════
+function checkRoomClear(){
+  if(G.enemies.every(e=>e.dead)){
+    setTimeout(()=>{
+      log('房間清除！','sys');
+      const btn=document.getElementById('end-turn-btn');
+      btn.textContent= G.room>=G.totalRooms ? '查看結算 ✦' : '領取獎勵 →';
+      btn.disabled=false;
+      btn.onclick=()=>{
+        btn.textContent='結束回合';
+        btn.onclick=endTurn;
+        showReward();
+      };
+    }, 800);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 遺物 passive 彙總（每回合開始呼叫）
+// ══════════════════════════════════════════════════════
+function applyRelicPassives(){
+  const mod={
+    dmgFlat:0, dmgIfAtk2:0, dmgIfAtk3:0, dmgEvery2Turn:0,
+    dmgIfHpBelow50:0, dmgIfHpBelow40:0, dmgIfHpBelow30:0, dmgIfHpBelow20:0,
+    dmgIfHpBelow30relic:0,
+    dmgRedFlat:0, dmgRedFromBoss:0, dmgRedIfHpBelow20:0, dmgRedIfHpBelow30:0,
+    dmgRedIfHpBelow50:0,
+    healBonus:0, healIfSup2:0,
+    thorns:0, charmExtra:0, selfDmgPerHit:0,
+    dotDmgBonus:0, dotDmgDouble:false, dotExtraLayer:0, selfDotPerTurn:0, dotOnSup:0,
+    dotDoubleAt10:false, dotBurstOnHit:false,
+    dmgVsNormal:0, dmgVsBoss:0, dmgVsRival:0,
+    dmgIfEnemies2:0, dmgIfEnemies3:0,
+    mixBonus:0, mixBonusTurn1:0, bonusIfHpHalf:false, bonusIfHp80:false, bonusIfHp70:false,
+    dmgBonusTurn1:0, multiHitRamp:0,
+    doubleFirstTurn:false, tripleOnSingleAtk:false,
+    atkCountsAsSup:false, supCountsAsAtk:false, stunOnMix:false,
+    atkCardExtraHit:false, immunePeriod:false, reviveOnce:false,
+    loveSetBonus:false,
+    // 攻輔組合
+    mixBonusEach:0, doubleIfMix2:false, bonusIfMix3:0,
+    // 過勞組
+    selfDmgPerAtk:0, doubleAtkFirstTurn:false, hpCostFirstTurn:0,
+    dmgBonusIfAtk2Cost:0, hpCostIfAtk2:0, dmgDoubleIfAtk3:false, hpCostIfAtk3:0,
+    // 會議組
+    dmgBonus4thAtk:0, atkCardExtraHitIfAtk2:false, dmgEvery2Atk:0,
+    dmgRampPerAtk:0, dmgBonus6thAtk:0,
+    // 體態組
+    atkExtraHitIfHpBelow40:false, baseCardBonusIfHpBelow50:0,
+    // 美容組
+    baseCardDouble:false, baseCardBonus:0, skillDmgPenalty:0,
+    dmgIfBase2:0, halfDmgIfBase:false, baseAtkAoe:false, baseAtkAlsoHeal:false,
+    baseCardAlsoHeal:false, baseSupAlsoDmg:false,
+    // 放縱日
+    maxHpPerBaseSup:0,
+    // 小雪儀態
+    graceOnOverheal:false, graceHealBoost:0, graceDoublAt7:false,
+    // 子子亢奮
+    furyDouble:false, furyOnHit:false, stunIfFury3:false, furyBonusFirstTurn:false,
+  };
+
+  const hasletter = G.ownedRelics.some(r=>r.id==='r_letter');
+  const hasanniv  = G.ownedRelics.some(r=>r.id==='r_anniversary');
+
+  G.ownedRelics.forEach(rel=>{
+    if(!rel.passive) return;
+    const p=rel.passive;
+    if(p.dmgFlat)         mod.dmgFlat+=p.dmgFlat;
+    if(p.dmgIfAtk2)       mod.dmgIfAtk2+=p.dmgIfAtk2;
+    if(p.dmgIfAtk3)       mod.dmgIfAtk3+=p.dmgIfAtk3;
+    if(p.dmgEvery2Turn)   mod.dmgEvery2Turn+=p.dmgEvery2Turn;
+    if(p.dmgIfHpBelow50)  mod.dmgIfHpBelow50+=p.dmgIfHpBelow50;
+    if(p.dmgIfHpBelow40)  mod.dmgIfHpBelow40+=p.dmgIfHpBelow40;
+    if(p.dmgIfHpBelow30)  mod.dmgIfHpBelow30+=p.dmgIfHpBelow30;
+    if(p.dmgIfHpBelow20)  mod.dmgIfHpBelow20+=p.dmgIfHpBelow20;
+    if(p.dmgIfHpBelow30relic) mod.dmgIfHpBelow30relic+=p.dmgIfHpBelow30relic;
+    if(p.dmgRedFlat)      mod.dmgRedFlat+=p.dmgRedFlat;
+    if(p.dmgRedFromBoss)  mod.dmgRedFromBoss+=p.dmgRedFromBoss;
+    if(p.dmgRedIfHpBelow20) mod.dmgRedIfHpBelow20+=p.dmgRedIfHpBelow20;
+    if(p.dmgRedIfHpBelow30) mod.dmgRedIfHpBelow30+=p.dmgRedIfHpBelow30;
+    if(p.dmgRedIfHpBelow50) mod.dmgRedIfHpBelow50+=p.dmgRedIfHpBelow50;
+    if(p.healBonus)       mod.healBonus+=p.healBonus;
+    if(p.healIfSup2)      mod.healIfSup2+=p.healIfSup2;
+    if(p.thorns)          mod.thorns+=p.thorns;
+    if(p.charmExtra)      mod.charmExtra+=p.charmExtra;
+    if(p.selfDmgPerHit)   mod.selfDmgPerHit+=p.selfDmgPerHit;
+    if(p.dotDmgBonus)     mod.dotDmgBonus+=p.dotDmgBonus;
+    if(p.dotDmgDouble)    mod.dotDmgDouble=true;
+    if(p.dotExtraLayer)   mod.dotExtraLayer+=p.dotExtraLayer;
+    if(p.selfDotPerTurn)  mod.selfDotPerTurn+=p.selfDotPerTurn;
+    if(p.dotOnSup)        mod.dotOnSup+=p.dotOnSup;
+    if(p.dotDoubleAt10)   mod.dotDoubleAt10=true;
+    if(p.dotBurstOnHit)   mod.dotBurstOnHit=true;
+    if(p.dmgVsNormal)     mod.dmgVsNormal+=p.dmgVsNormal;
+    if(p.dmgVsBoss)       mod.dmgVsBoss+=p.dmgVsBoss;
+    if(p.dmgVsRival)      mod.dmgVsRival+=p.dmgVsRival;
+    if(p.dmgIfEnemies2)   mod.dmgIfEnemies2+=p.dmgIfEnemies2;
+    if(p.dmgIfEnemies3)   mod.dmgIfEnemies3+=p.dmgIfEnemies3;
+    if(p.mixBonus)        mod.mixBonus+=p.mixBonus;
+    if(p.mixBonusTurn1)   mod.mixBonusTurn1+=p.mixBonusTurn1;
+    if(p.bonusIfHpHalf)   mod.bonusIfHpHalf=true;
+    if(p.bonusIfHp80)     mod.bonusIfHp80=true;
+    if(p.dmgBonusTurn1)   mod.dmgBonusTurn1+=p.dmgBonusTurn1;
+    if(p.multiHitRamp)    mod.multiHitRamp+=p.multiHitRamp;
+    if(p.doubleFirstTurn) mod.doubleFirstTurn=true;
+    if(p.tripleOnSingleAtk) mod.tripleOnSingleAtk=true;
+    if(p.atkCountsAsSup)  mod.atkCountsAsSup=true;
+    if(p.supCountsAsAtk)  mod.supCountsAsAtk=true;
+    if(p.stunOnMix)       mod.stunOnMix=true;
+    if(p.atkCardExtraHit) mod.atkCardExtraHit=true;
+    if(p.immunePeriod)    mod.immunePeriod=true;
+    if(p.reviveOnce)      mod.reviveOnce=true;
+    if(p.loveSetBonus && hasletter && hasanniv) mod.loveSetBonus=true;
+    // 攻輔組合
+    if(p.mixBonusEach)    mod.mixBonusEach+=p.mixBonusEach;
+    if(p.doubleIfMix2)    mod.doubleIfMix2=true;
+    if(p.bonusIfMix3)     mod.bonusIfMix3+=p.bonusIfMix3;
+    // 過勞組
+    if(p.selfDmgPerAtk)   mod.selfDmgPerAtk+=p.selfDmgPerAtk;
+    if(p.doubleAtkFirstTurn) mod.doubleAtkFirstTurn=true;
+    if(p.hpCostFirstTurn) mod.hpCostFirstTurn+=p.hpCostFirstTurn;
+    if(p.dmgBonusIfAtk2Cost) mod.dmgBonusIfAtk2Cost+=p.dmgBonusIfAtk2Cost;
+    if(p.hpCostIfAtk2)    mod.hpCostIfAtk2+=p.hpCostIfAtk2;
+    if(p.dmgDoubleIfAtk3) mod.dmgDoubleIfAtk3=true;
+    if(p.hpCostIfAtk3)    mod.hpCostIfAtk3+=p.hpCostIfAtk3;
+    // 會議組
+    if(p.dmgBonus4thAtk)  mod.dmgBonus4thAtk+=p.dmgBonus4thAtk;
+    if(p.atkCardExtraHitIfAtk2) mod.atkCardExtraHitIfAtk2=true;
+    if(p.dmgEvery2Atk)    mod.dmgEvery2Atk+=p.dmgEvery2Atk;
+    if(p.dmgRampPerAtk)   mod.dmgRampPerAtk+=p.dmgRampPerAtk;
+    if(p.dmgBonus6thAtk)  mod.dmgBonus6thAtk+=p.dmgBonus6thAtk;
+    // 體態組
+    if(p.atkExtraHitIfHpBelow40) mod.atkExtraHitIfHpBelow40=true;
+    if(p.baseCardBonusIfHpBelow50) mod.baseCardBonusIfHpBelow50+=p.baseCardBonusIfHpBelow50;
+    // 美容組
+    if(p.baseCardDouble)  mod.baseCardDouble=true;
+    if(p.baseCardBonus)   mod.baseCardBonus+=p.baseCardBonus;
+    if(p.skillDmgPenalty) mod.skillDmgPenalty+=p.skillDmgPenalty;
+    if(p.dmgIfBase2)      mod.dmgIfBase2+=p.dmgIfBase2;
+    if(p.halfDmgIfBase)   mod.halfDmgIfBase=true;
+    if(p.baseAtkAoe)      mod.baseAtkAoe=true;
+    if(p.baseAtkAlsoHeal) mod.baseAtkAlsoHeal=true;
+    if(p.baseCardAlsoHeal) mod.baseCardAlsoHeal=true;
+    if(p.baseSupAlsoDmg)  mod.baseSupAlsoDmg=true;
+    // 放縱日
+    if(p.maxHpPerBaseSup) mod.maxHpPerBaseSup+=p.maxHpPerBaseSup;
+    // 小雪儀態
+    if(p.graceOnOverheal) mod.graceOnOverheal=true;
+    if(p.graceHealBoost)  mod.graceHealBoost+=p.graceHealBoost;
+    if(p.graceDoublAt7)   mod.graceDoublAt7=true;
+    // 子子亢奮
+    if(p.furyDouble)        mod.furyDouble=true;
+    if(p.furyOnHit)         mod.furyOnHit=true;
+    if(p.stunIfFury3)       mod.stunIfFury3=true;
+    if(p.furyBonusFirstTurn) mod.furyBonusFirstTurn=true;
+    if(p.bonusIfHp70)       mod.bonusIfHp70=true;
+  });
+
+  G.relicMod=mod;
+}
+
+// ══════════════════════════════════════════════════════
+// 遺物效果輔助
+// ══════════════════════════════════════════════════════
+function calcDmgBonus(base, enemy){
+  const m=G.relicMod;
+  let bonus=m.dmgFlat;
+  // 生理期懲罰
+  if(G.periodActive) bonus-=2;
+  // 條件式加成
+  if(m.dmgIfAtk2 && G.turn.atk>=2) bonus+=m.dmgIfAtk2;
+  if(m.dmgIfAtk3 && G.turn.atk>=3) bonus+=m.dmgIfAtk3;
+  if(m.dmgEvery2Turn && G.battleTurn%2===0) bonus+=m.dmgEvery2Turn;
+  if(m.dmgIfHpBelow50 && G.hp<=50) bonus+=m.dmgIfHpBelow50;
+  if(m.dmgIfHpBelow40 && G.hp<=40) bonus+=m.dmgIfHpBelow40;
+  if(m.dmgIfHpBelow30 && G.hp<=30) bonus+=m.dmgIfHpBelow30;
+  if(m.dmgIfHpBelow20 && G.hp<=20) bonus+=m.dmgIfHpBelow20;
+  if(m.dmgIfHpBelow30relic && G.hp<=30) bonus+=m.dmgIfHpBelow30relic;
+  if(m.dmgBonusTurn1 && G.battleTurn===1) bonus+=m.dmgBonusTurn1;
+  if(m.bonusIfHpHalf && G.hp>=G.maxHp*0.5) bonus+=1;
+  if(m.bonusIfHp80 && G.hp>=G.maxHp*0.8) bonus+=1;
+  if(m.bonusIfHp70 && G.hp>=G.maxHp*0.7) bonus+=2;
+  if(m.loveSetBonus) bonus+=5;
+  // 會議組：進度說明會（遞增）
+  if(m.dmgRampPerAtk){
+    G.turn.dmgRampCount=(G.turn.dmgRampCount||0);
+    bonus+=G.turn.dmgRampCount * m.dmgRampPerAtk;
+  }
+  // 會議組：週會（每兩次攻擊+1）
+  if(m.dmgEvery2Atk && G.turn.atkFireCount!=null && Math.floor(G.turn.atkFireCount/2)>0){
+    bonus+=Math.floor(G.turn.atkFireCount/2)*m.dmgEvery2Atk;
+  }
+  // 會議組：季末衝刺（第4次）
+  if(m.dmgBonus4thAtk && G.turn.atkFireCount!=null && G.turn.atkFireCount===3) bonus+=m.dmgBonus4thAtk;
+  // 會議組：死線日（第6次）
+  if(m.dmgBonus6thAtk && G.turn.atkFireCount!=null && G.turn.atkFireCount===5) bonus+=m.dmgBonus6thAtk;
+  // 爆肝夜：翻倍
+  if(m.dmgDoubleIfAtk3 && G.turn.atk>=3) bonus+=base+bonus; // 等效翻倍
+  // 敵人類型
+  if(enemy){
+    if(m.dmgVsNormal && enemy.label==='普通') bonus+=m.dmgVsNormal;
+    if(m.dmgVsBoss && (enemy.label==='Boss'||enemy.label==='小Boss')) bonus+=m.dmgVsBoss;
+    if(m.dmgVsRival && enemy.isRival) bonus+=m.dmgVsRival;
+    const alive=G.enemies.filter(e=>!e.dead).length;
+    if(m.dmgIfEnemies2 && alive>=2) bonus+=m.dmgIfEnemies2;
+    if(m.dmgIfEnemies3 && alive>=3) bonus+=m.dmgIfEnemies3;
+  }
+  return bonus;
+}
+
+function calcDmgReduction(fromBoss){
+  const m=G.relicMod;
+  let red=m.dmgRedFlat;
+  if(fromBoss && m.dmgRedFromBoss) red+=m.dmgRedFromBoss;
+  if(m.dmgRedIfHpBelow20 && G.hp<=20) red+=m.dmgRedIfHpBelow20;
+  if(m.dmgRedIfHpBelow30 && G.hp<=30) red+=m.dmgRedIfHpBelow30;
+  if(m.dmgRedIfHpBelow50 && G.hp<=50) red+=m.dmgRedIfHpBelow50;
+  if(m.bonusIfHpHalf && G.hp>=G.maxHp*0.5) red+=1;
+  if(m.bonusIfHp80 && G.hp>=G.maxHp*0.8) red+=1;
+  if(m.bonusIfHp70 && G.hp>=G.maxHp*0.7) red+=2;
+  if(m.loveSetBonus) red+=5;
+  if(G.damageReduction>0) red+=2;
+  return red;
+}
+
+function calcHealBonus(){
+  const m=G.relicMod;
+  let bonus=m.healBonus;
+  if(m.healIfSup2 && G.turn.sup>=2) bonus+=m.healIfSup2;
+  return bonus;
+}
+
+function triggerRemoveCard(G, afterCb){
+  G.removeCardPending=true;
+  log('碎紙機：請選擇要移除的牌。','sys');
+  showRemoveCardModal(afterCb);
+}
+
+function showRemoveCardModal(afterCb){
+  const cont=document.getElementById('reward-choices');
+  cont.innerHTML='';
+  document.getElementById('reward-modal-title').textContent='移除一張牌';
+  document.getElementById('reward-modal-sub').textContent='從牌組中永久移除一張';
+  G.deck.forEach(c=>{
+    const div=document.createElement('div');
+    div.className='relic-reward-card';
+    const tagLabel=c.type==='atk'?'攻擊':'輔助';
+    div.innerHTML=
+      '<div class="rrc-rarity common">'+tagLabel+(c.isSkill?' · 技能':'')+'</div>'+
+      '<div class="rrc-name">'+c.name+'</div>'+
+      '<div class="rrc-desc">'+c.desc+'</div>';
+    div.onclick=()=>{
+      const idx=G.deck.findIndex(x=>x.uid===c.uid);
+      if(idx>=0) G.deck.splice(idx,1);
+      document.getElementById('reward-modal').classList.remove('active');
+      log('移除了「'+c.name+'」。','sys');
+      G.removeCardPending=false;
+      if(afterCb){ afterCb(); }
+      else if(_rewardCallback){ const cb=_rewardCallback; _rewardCallback=null; cb(); }
+    };
+    cont.appendChild(div);
+  });
+  document.getElementById('reward-modal').classList.add('active');
+}
+
+function checkRevive(){
+  if(G.relicMod.reviveOnce && !G.reviveUsed){
+    G.reviveUsed=true;
+    G.hp=G.maxHp;
+    renderHP();
+    log('使用隨身補妝包！全妝復活！','sys');
+  } else {
+    gameOver();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 獎勵系統（遺物）
+// ══════════════════════════════════════════════════════
+let _rewardCallback=null;
+
+// isExclusive: 是否只從專屬池抽；callback: 關閉後執行
+function showRelicReward(isExclusive, callback){
+  _rewardCallback=callback||null;
+
+  const pool = isExclusive
+    ? G.relicPool.filter(r=>r.owner===G.charId)
+    : G.relicPool.filter(r=>r.owner===null);
+
+  if(!pool.length){ if(callback) callback(); return; }
+
+  // 稀有度加權（依房間深度）
+  const picks = drawRelicChoices(pool, 3, isExclusive);
+
+  document.getElementById('reward-modal-title').textContent = isExclusive ? '專屬遺物' : '通關獎勵';
+  document.getElementById('reward-modal-sub').textContent   = '選擇一個遺物（或跳過）';
+
+  const cont=document.getElementById('reward-choices');
+  cont.innerHTML='';
+  picks.forEach(rel=>{
+    const div=document.createElement('div');
+    div.className='relic-reward-card '+rel.rarity;
+    const rarityLabel={common:'普通',rare:'稀有',epic:'史詩'}[rel.rarity]||'';
+    div.innerHTML=
+      '<div class="rrc-rarity '+rel.rarity+'">'+rarityLabel+'</div>'+
+      '<div class="rrc-name">'+rel.name+'</div>'+
+      '<div class="rrc-desc">'+rel.desc+'</div>';
+    div.onclick=()=>pickRelic(rel);
+    cont.appendChild(div);
+  });
+  document.getElementById('reward-modal').classList.add('active');
+}
+
+function drawRelicChoices(pool, n, isExclusive){
+  // 稀有度權重依房間
+  const r=G.room||0;
+  let wCommon, wRare, wEpic;
+  if(r<=7)       { wCommon=80; wRare=18; wEpic=2; }
+  else if(r<=14) { wCommon=55; wRare=35; wEpic=10; }
+  else           { wCommon=30; wRare=45; wEpic=25; }
+
+  const weighted=pool.map(rel=>{
+    const w={common:wCommon,rare:wRare,epic:wEpic}[rel.rarity]||10;
+    return{...rel,_w:w};
+  });
+
+  const result=[], used=new Set();
+  let tries=0;
+  while(result.length<n && tries<300){
+    tries++;
+    const remaining=weighted.filter(r=>!used.has(r.id));
+    if(!remaining.length) break;
+    const total=remaining.reduce((s,r)=>s+r._w,0);
+    let rv=Math.random()*total, cum=0;
+    for(const c of remaining){
+      cum+=c._w;
+      if(rv<cum){ result.push(c); used.add(c.id); break; }
+    }
+  }
+  return result;
+}
+
+function pickRelic(rel){
+  document.getElementById('reward-modal').classList.remove('active');
+
+  // 從池中移除
+  const idx=G.relicPool.findIndex(r=>r.id===rel.id);
+  if(idx>=0) G.relicPool.splice(idx,1);
+
+  G.ownedRelics.push(rel);
+  log('獲得遺物：「'+rel.name+'」'+rel.desc,'sys');
+
+  // 觸發 onPickup
+  if(rel.onPickup) rel.onPickup(G);
+
+  renderRelicBar();
+  applyRelicPassives();
+
+  if(_rewardCallback){ _rewardCallback(); _rewardCallback=null; }
+}
+
+function skipReward(){
+  document.getElementById('reward-modal').classList.remove('active');
+  if(_rewardCallback){ const cb=_rewardCallback; _rewardCallback=null; cb(); }
+}
+
+function showReward(){
+  nextRoom();
+}
+
+function nextRoom(){
+  G.room++;
+  shuffleDraw();
+  if(G.room>G.totalRooms){ showVictory(); return; }
+  renderDeckInfo();
+
+  if(G.room===11){
+    showRelicReward(true, ()=>{
+      setTimeout(()=>{
+        showRelicReward(false, ()=>{
+          setTimeout(()=>spawnRoom(), 50);
+        });
+      }, 50);
+    });
+  } else {
+    showRelicReward(false, ()=>spawnRoom());
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 遊戲結束
+// ══════════════════════════════════════════════════════
+function showVictory(){
+  const charId=G.charId;
+  const endings={
+    xiaoxue:{ title:'與小雪的約會', sub:'今天的行程進度達成了。現在，是只屬於我們的「加班」時間。' },
+    zizi:   { title:'接受子子告白', sub:'我保證！以後我每天都會給你滿滿的活力，絕對不會讓你後悔答應我的！' },
+    lingzi: { title:'被綾子獨佔了', sub:'別擔心，這輩子我們都會在一起……不會讓你離開我視線的……' },
+  };
+  const e=endings[charId]||{ title:'打倒情敵', sub:'我知道，真愛可以戰勝一切。' };
+  document.getElementById('overlay-title').textContent=e.title;
+  document.getElementById('overlay-sub').textContent=e.sub;
+  document.getElementById('overlay-stats').innerHTML=
+    '<div style="margin:4px 0;">剩餘 HP：<span style="color:#cc4466;">'+G.hp+' / '+G.maxHp+'</span></div>'+
+    '<div style="margin:4px 0;">牌組張數：<span style="color:#9966cc;">'+G.deck.length+' 張</span></div>'+
+    '<div style="margin:8px 0 0;font-size:9px;color:#443355;letter-spacing:1px;">打倒情敵了！</div>';
+  document.getElementById('overlay').classList.add('active');
+}
+
+function gameOver(){
+  G.gameOver=true;
+  document.getElementById('end-turn-btn').disabled=true;
+  document.getElementById('overlay-stats').innerHTML='';
+  showOverlay('力不從心','撐不住了……');
+}
+
+function showOverlay(t,s){
+  document.getElementById('overlay-title').textContent=t;
+  document.getElementById('overlay-sub').textContent=s;
+  document.getElementById('overlay').classList.add('active');
+}
+
+window.restartGame=function(){
+  document.getElementById('overlay').classList.remove('active');
+  document.getElementById('overlay-stats').innerHTML='';
+  selectedCharId=null;
+  isDemoMode=false;
+  demoRelics=[];
+  demoBossId=null;
+  document.querySelectorAll('.char-card').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('char-confirm').disabled=true;
+  showScreen('mode-select');
+};
+
+// ══════════════════════════════════════════════════════
+// LOG
+// ══════════════════════════════════════════════════════
+function log(msg, type=''){
+  const el=document.getElementById('battle-log');
+  const p=document.createElement('p');
+  p.textContent=msg;
+  p.className=({atk:'atk-log',sup:'sup-log',sys:'sys-log',bad:'bad-log'}[type])||'fresh';
+  el.appendChild(p);
+  el.querySelectorAll('p').forEach((x,i,a)=>{if(i<a.length-2)x.classList.remove('fresh');});
+  const ps=el.querySelectorAll('p');
+  if(ps.length>50) ps[0].remove();
+  el.scrollTop=el.scrollHeight;
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════
+function updateMood(){
+  const hint=document.getElementById('mechanic-hint');
+  if(!hint) return;
+  if(G.charId==='xiaoxue'){
+    const g=G.xs_grace||0;
+    const perG=5+(G.relicMod&&G.relicMod.graceHealBoost?G.relicMod.graceHealBoost:0);
+    const parts=['攻+輔並出 → 儀態+1','回合開始回復 儀態×'+perG+' HP','溢出 → 對敵傷害'];
+    if(G.relicMod&&G.relicMod.bonusIfHp70) parts.push('HP≥70% → 傷害+2、受傷-2');
+    if(G.relicMod&&G.relicMod.graceOnOverheal) parts.push('溢補 → 儀態+1');
+    if(G.relicMod&&G.relicMod.graceDoublAt7) parts.push('儀態≥7 → 牌效翻倍'+(g>=7?' ✦':''));
+    hint.textContent=parts.join('　│　');
+  } else if(G.charId==='lingzi'){
+    const dep=G.lz_depression||0;
+    const parts=['輔助牌 → 陰鬱+輔助數','回合結束 → 全體承受等同陰鬱值傷害（不減層）'];
+    if(G.relicMod&&G.relicMod.dotDoubleAt10) parts.push('陰鬱≥10 → 傷害翻倍'+(dep>=10?' ✦':''));
+    if(G.relicMod&&G.relicMod.dotBurstOnHit) parts.push('受傷 → 陰鬱+1');
+    hint.textContent=parts.join('　│　');
+  } else if(G.charId==='zizi'){
+    const f=G.zz_fury||0;
+    const parts=['攻擊牌 → 亢奮+1','每次攻擊 +亢奮值傷害'];
+    if(G.relicMod&&G.relicMod.stunIfFury3) parts.push('亢奮≥3 → 攻擊附帶暈眩'+(f>=3?' ✦':''));
+    if(G.relicMod&&G.relicMod.furyOnHit) parts.push('受傷 → 亢奮+1');
+    if(G.relicMod&&G.relicMod.furyDouble) parts.push('亢奮效果×2');
+    hint.textContent=parts.join('　│　');
+  } else {
+    hint.textContent='';
+  }
+}
+
+function renderAll(){ renderEnemies(); renderHP(); renderHand(); renderCounters(); renderDeckInfo(); updateMood(); renderRelicBar(); renderXsGrace(); renderZzFury(); renderLzDot(); }
+
+function renderEnemies(){
+  const el=document.getElementById('enemy-portraits'); el.innerHTML='';
+  G.enemies.forEach(e=>{
+    const div=document.createElement('div');
+    div.className='enemy-portrait-card'+(e.dead?' dead':'')+(e.id===G.targeted&&!e.dead?' targeted':'')+(e.stunned>0?' stunned':'');
+    div.setAttribute('data-eid',e.id);
+    div.onclick=()=>{if(!e.dead){G.targeted=e.id;renderEnemies();}};
+    const pct=Math.max(0,e.hp/e.maxHp*100);
+    const hpCls=e.tag==='tag-b'?'ehp-b':e.tag==='tag-m'?'ehp-m':'ehp-n';
+
+    const imgSrc=e.portrait||'';
+    const imgHtml=imgSrc ? `<img src="${imgSrc}" alt="${e.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : '';
+    const phHtml=`<div class="ep-placeholder" ${imgSrc?'style="display:none"':''}>👤</div>`;
+
+    let intentText='';
+    if(e.stunned>0) intentText='⊙ 暈眩中';
+    else if(e.pressure) intentText='每回合施加壓力';
+    else if(e.rivalType==='feifei') intentText='施放魅惑♡';
+    else if(e.rivalType==='caiyi'){
+      intentText= G.caiyiInvincible ? '✦ 本回合無敵' : '？';
+    }
+    else if(e.rivalType==='xiaozhong'){
+      const totalDmg=(e.dmg||8)+Math.round(e.atkBoost||0);
+      intentText='下回合攻擊 '+totalDmg+(e.atkBoost>0?' ↑':'');
+    }
+    else if(e.rivalType==='ruibi'){
+      intentText='連擊 '+(e.hitCount||2)+' 次（每次 '+(e.dmg||10)+'）';
+    }
+    else if(e.rivalType==='jieling'){
+      const cc=(e.chargeCount||0)+1;
+      if(cc<(e.burstEvery||3)){
+        intentText='蓄力中（'+cc+'/'+(e.burstEvery||3)+'）';
+      } else {
+        intentText='⚡ 爆發！（'+( e.burstDmg||40)+'傷）';
+      }
+    }
+    else if(e.rivalType==='xiaomei'){
+      const bonus=G.xiaomeiSupBonus||0;
+      intentText='下回合攻擊 '+((e.dmg||11)+bonus)+(bonus>0?' ↑':'');
+    }
+    else intentText='下回合攻擊 '+(e.dmg||0);
+
+    const dotBadge = '';
+
+    div.innerHTML=
+      `<div class="ep-img-area">${imgHtml}${phHtml}</div>`+
+      `<div class="ep-info">`+
+      `<div class="ep-name">${e.name}${dotBadge}</div>`+
+      `<div class="ep-tags">`+
+      `<span class="enemy-tag ${e.tag}">${e.label}</span>`+
+      (e.resist?'<span class="enemy-tag tag-m">抵抗</span>':'')+
+      (e.stunResist?'<span class="enemy-tag tag-b">暈眩免疫</span>':'')+
+      `</div>`+
+      `<div class="ep-hp-row"><div class="ep-hp-track"><div class="ep-hp-fill ${hpCls}" style="width:${pct}%"></div></div>`+
+      `<span style="font-size:8px;color:#AAA;min-width:40px;text-align:right;">${e.hp}/${e.maxHp}</span></div>`+
+      `<div class="${e.stunned>0?'ep-stun':'ep-intent'}">${intentText}</div>`+
+      `</div>`;
+
+    el.appendChild(div);
+  });
+}
+
+function renderHP(){
+  const pct=(G.hp/G.maxHp*100);
+  document.getElementById('portrait-hp-bar').style.width=pct+'%';
+  document.getElementById('portrait-hp-text').textContent=G.hp+'/'+G.maxHp;
+}
+
+function renderHand(){
+  const el=document.getElementById('hand-cards'); el.innerHTML='';
+  G.hand.forEach(c=>{
+    const div=document.createElement('div');
+    const charmed=c.charmed||false;
+    const lineTag=c.type==='atk'?'atk-card':c.type==='sup'?'sup-card':'';
+    div.className='card '+lineTag+(c.isSkill?' skill-card':'')+(c.selected?' selected':'')+(charmed?' charmed-card':'');
+    const tagCls=charmed?'ct-sup':(c.isSkill?(c.type==='atk'?'ct-skill-atk':'ct-skill-sup'):(c.type==='atk'?'ct-atk':'ct-sup'));
+    const tagLabel=charmed?'魅惑♡':(c.type==='atk'?'攻擊':c.type==='sup'?'輔助':'？');
+    // thresh換行處理
+    const threshHtml = c.isSkill&&c.thresh&&!charmed
+      ? '<div class="card-threshold">✦ '+c.thresh.replace(/\n/g,'<br>')+'</div>'
+      : '';
+    div.innerHTML=
+      '<span class="card-tag '+tagCls+'">'+tagLabel+'</span>'+
+      '<div class="card-name">'+(charmed?'無法使用':c.name)+'</div>'+
+      '<div class="card-desc">'+(charmed?'此牌已被魅惑':c.desc)+'</div>'+
+      threshHtml;
+    div.onclick=()=>playCard(c.uid);
+    el.appendChild(div);
+  });
+  const pc=document.getElementById('played-count'); if(pc) pc.textContent=G.hand.filter(c=>c.selected).length;
+  const dn=document.getElementById('draw-num'); if(dn) dn.textContent=G.deck.length;
+}
+
+function renderCounters(){
+  const sel=G.hand.filter(c=>c.selected);
+  document.getElementById('atk-count').textContent=sel.filter(c=>c.type==='atk').length;
+  document.getElementById('sup-count').textContent=sel.filter(c=>c.type==='sup').length;
+}
+
+function updateTriggerHint(){
+  const el=document.getElementById('trigger-hint');
+  const hints=[];
+  G.hand.filter(c=>c.isSkill&&c.onResolve&&c.selected).forEach(c=>{
+    if(c.id==='xs_skill_aoe')    hints.push('攻≥2 觸發 '+c.name);
+    if(c.id==='xs_skill_stun')   hints.push('輔≥2 觸發 '+c.name);
+    if(c.id==='zz_skill_triple') hints.push('攻≥2 每擊+亢奮 '+c.name);
+  });
+  el.textContent=hints.length?hints[0]:'';
+}
+
+function renderRelicBar(){
+  if(!G || !G.ownedRelics) return;
+  const bar=document.getElementById('relic-bar');
+  if(!bar) return;
+  if(!G.ownedRelics.length){
+    bar.innerHTML='<span style="font-size:9px;color:#332244;letter-spacing:1px;">尚無遺物</span>';
+    return;
+  }
+  bar.innerHTML='';
+  G.ownedRelics.forEach(rel=>{
+    const chip=document.createElement('div');
+    chip.className='relic-chip '+rel.rarity+(rel.id==='生理期'&&G.periodActive?' period-active':'');
+    chip.innerHTML=rel.name+'<span class="relic-tip">'+rel.desc+'</span>';
+    bar.appendChild(chip);
+  });
+}
+
+function renderDeckInfo(){
+  document.getElementById('di-total').textContent=G.deck.length;
+  document.getElementById('di-atk').textContent=G.deck.filter(c=>c.type==='atk'&&!c.isSkill).length;
+  document.getElementById('di-sup').textContent=G.deck.filter(c=>c.type==='sup'&&!c.isSkill).length;
+  document.getElementById('di-skill').textContent=G.deck.filter(c=>c.isSkill).length;
+  const dn2=document.getElementById('draw-num'); if(dn2) dn2.textContent=G.deck.length;
+  document.getElementById('room-label').textContent='第 '+G.room+' 間';
+}
+
+// ══════════════════════════════════════════════════════
+// 啟動（等選角）
+// ══════════════════════════════════════════════════════
+// 不自動 initGame，等 confirmChar() 觸發
+</script>
+</body>
+</html>
