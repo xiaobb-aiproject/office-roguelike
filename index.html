@@ -788,49 +788,54 @@ body {
   .relic-chip .relic-tip { display: none; white-space: normal; min-width: 140px; font-size: 11px; }
   .relic-chip.tip-open .relic-tip { display: block; }
 
-  /* 主區塊：左右兩欄 */
-  #main {
+  /* 整體 main：上下排列 */
+  #main { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+  /* 敵人區：左右兩欄，first 對齊角色卡，rest 對齊手牌 */
+  #enemy-portraits {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
-    flex: 1;
-    overflow: hidden;
     gap: 6px;
     padding: 6px 6px 0;
+    background: #08060e;
+    border-bottom: none;
+    overflow: visible;
+    flex-shrink: 0;
   }
-
-  /* 左欄：敵人1 + 角色卡，固定寬度 */
-  #left-col {
-    display: flex;
-    flex-direction: column;
+  #enemy-first {
     width: 81px;
     flex-shrink: 0;
-    gap: 6px;
   }
   #enemy-first .enemy-portrait-card { width: 81px !important; }
   #enemy-first .ep-img-area { width: 81px !important; height: 122px !important; }
-
-  /* 右欄：敵人2+ + log + 手牌，填滿剩餘 */
-  #right-col {
+  #enemy-rest {
     flex: 1;
     min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-
-  /* 敵人2+ grid */
-  #enemy-rest {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 4px;
-    margin-bottom: 4px;
   }
   #enemy-rest .enemy-portrait-card { width: 100% !important; }
   #enemy-rest .ep-img-area { display: none !important; }
 
-  /* LOG：右欄內 */
-  #battle-log { min-height: 52px; max-height: 80px; font-size: 12px; padding: 5px 6px; order: -1; }
+  .ep-name { font-size: 11px; }
+  .ep-hp-track { height: 5px !important; }
+  .ep-intent, .ep-stun { font-size: 9px; }
+
+  /* LOG */
+  #battle-log { min-height: 52px; max-height: 80px; font-size: 12px; padding: 5px 6px; }
+
+  /* 下排：左右兩欄，角色 81px + 手牌剩餘 */
+  #bottom-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    padding: 6px 6px 0;
+    gap: 6px;
+    flex: 1;
+    border-top: none;
+    background: transparent;
+  }
 
   /* 角色卡 */
   #ally-card {
@@ -841,6 +846,8 @@ body {
     border: 1px solid #9966cc !important;
     box-shadow: 0 0 8px #66339933;
     border-radius: 8px !important;
+    border-right: 1px solid #9966cc !important;
+    background: var(--bg3);
   }
   #ally-card .ep-img-area { width: 81px !important; height: 122px !important; flex-shrink: 0; }
   #ally-card .ep-info { padding: 4px 6px; flex: 1; display: flex; flex-direction: column; }
@@ -1048,8 +1055,18 @@ body {
 
 <div id="main">
   <!-- 手機版：左欄（敵人1 + 角色卡），右欄（敵人2+ + 手牌） -->
-  <div id="left-col">
+<div id="main">
+  <!-- 敵人區 -->
+  <div id="enemy-portraits">
     <div id="enemy-first"></div>
+    <div id="enemy-rest"></div>
+  </div>
+
+  <!-- LOG -->
+  <div id="battle-log"></div>
+
+  <!-- 下排：角色 + 手牌 -->
+  <div id="bottom-row">
     <!-- 角色卡片 -->
     <div id="ally-card" class="enemy-portrait-card" style="cursor:default;border-color:#553355;">
       <div class="ep-img-area">
@@ -1077,19 +1094,16 @@ body {
             <span class="counter-val cv-sup" id="sup-count">0</span>
             <span class="counter-label">輔助</span>
           </div>
-          <!-- 小雪儀態 -->
           <div class="counter" id="xs-grace-counter" style="display:none">
             <div class="counter-dot" style="background:#d4a0cc"></div>
             <span class="counter-val" style="color:#d4a0cc" id="xs-grace-val">0</span>
             <span class="counter-label">儀態</span>
           </div>
-          <!-- 綾子陰鬱 -->
           <div class="counter" id="lz-dot-counter" style="display:none">
             <div class="counter-dot" style="background:#88cc44"></div>
             <span class="counter-val" style="color:#88cc44" id="lz-dot-val">0</span>
             <span class="counter-label">陰鬱</span>
           </div>
-          <!-- 子子亢奮 -->
           <div class="counter" id="zz-fury-counter" style="display:none">
             <div class="counter-dot" style="background:#cc8844"></div>
             <span class="counter-val" style="color:#cc8844" id="zz-fury-val">0</span>
@@ -1102,34 +1116,20 @@ body {
           <span id="di-skill" style="display:none">0</span>
           <div style="flex:1"></div>
         </div>
-        <!-- 角色專屬機制（手機版顯示，已由counters取代，隱藏） -->
         <div id="ally-mechanic-hint"></div>
       </div>
     </div>
-  </div><!-- #left-col -->
 
-  <div id="right-col">
-    <div id="enemy-rest"></div>
     <!-- 手牌面板 -->
     <div id="hand-panel">
-      <!-- 專屬計數效果說明列 -->
       <div id="mechanic-hint" style="font-size:9px;color:#9977bb;letter-spacing:1px;padding:2px 6px 4px;min-height:14px;"></div>
-      <!-- 手牌 + 結束回合 grid -->
-      <div id="hand-cards">
-        <!-- cards injected by JS -->
-      </div>
-      <!-- 結束回合：手機版放在 hand-cards grid 最後一格 -->
+      <div id="hand-cards"></div>
       <div id="end-turn-col">
         <button id="end-turn-btn" onclick="endTurn()">結束回合</button>
       </div>
-      <!-- 選取效果顯示列（手機版手牌下方） -->
       <div id="selection-bar"></div>
     </div>
-  </div><!-- #right-col -->
-
-  <!-- LOG：桌面版維持原本位置，手機版靠 CSS order 放在中間 -->
-  <div id="battle-log"></div>
-
+  </div>
 </div>
 
 <!-- Reward Modal（遺物選擇） -->
