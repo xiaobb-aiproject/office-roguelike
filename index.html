@@ -788,53 +788,51 @@ body {
   .relic-chip .relic-tip { display: none; white-space: normal; min-width: 140px; font-size: 11px; }
   .relic-chip.tip-open .relic-tip { display: block; }
 
-  /* 敵人區：第一個左側直立，其餘 2 欄 grid 在右側 */
-  #enemy-portraits {
+  /* 主區塊：左右兩欄 */
+  #main {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
+    flex: 1;
+    overflow: hidden;
     gap: 6px;
     padding: 6px 6px 0;
-    overflow-x: hidden;
   }
-  #enemy-portraits .enemy-portrait-card:first-child {
-    width: 81px !important;
+
+  /* 左欄：敵人1 + 角色卡，固定寬度 */
+  #left-col {
+    display: flex;
+    flex-direction: column;
+    width: 81px;
     flex-shrink: 0;
+    gap: 6px;
   }
-  #enemy-portraits .enemy-portrait-card:first-child .ep-img-area {
-    width: 81px !important;
-    height: 122px !important;
+  #enemy-first .enemy-portrait-card { width: 81px !important; }
+  #enemy-first .ep-img-area { width: 81px !important; height: 122px !important; }
+
+  /* 右欄：敵人2+ + log + 手牌，填滿剩餘 */
+  #right-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
   }
-  #enemy-rest-grid {
+
+  /* 敵人2+ grid */
+  #enemy-rest {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 4px;
-    flex: 1;
-    min-width: 0;
+    margin-bottom: 4px;
   }
-  #enemy-portraits .enemy-portrait-card:not(:first-child) {
-    width: 100%;
-    min-width: 0;
-  }
-  #enemy-portraits .enemy-portrait-card:not(:first-child) .ep-img-area { display: none; }
-  .ep-name { font-size: 11px; }
-  .ep-hp-track { height: 5px !important; }
-  .ep-intent, .ep-stun { font-size: 9px; }
+  #enemy-rest .enemy-portrait-card { width: 100% !important; }
+  #enemy-rest .ep-img-area { display: none !important; }
 
-  /* LOG */
-  #battle-log { min-height: 52px; max-height: 80px; font-size: 12px; padding: 5px 10px; }
+  /* LOG：右欄內 */
+  #battle-log { min-height: 52px; max-height: 80px; font-size: 12px; padding: 5px 6px; order: -1; }
 
-  /* 下排 */
-  #bottom-row {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    padding: 6px 6px 0;
-    gap: 6px;
-    flex: 1;
-  }
-
-  /* 角色卡 90% */
+  /* 角色卡 */
   #ally-card {
     width: 81px !important;
     flex-direction: column !important;
@@ -858,7 +856,7 @@ body {
   .counter-label { font-size: 9px; }
   .counter-dot { width: 7px; height: 7px; }
 
-  /* 手牌面板：grid，mechanic-hint 和 selection-bar 跨兩欄 */
+  /* 手牌面板 */
   #hand-panel {
     flex: 1;
     min-width: 0;
@@ -866,7 +864,7 @@ body {
     grid-template-columns: 1fr 1fr;
     grid-auto-rows: min-content;
     gap: 4px;
-    padding: 4px;
+    padding: 4px 0;
     align-content: start;
     overflow-y: auto;
   }
@@ -1049,14 +1047,9 @@ body {
 <div id="relic-bar"><span style="font-size:9px;color:#332244;letter-spacing:1px;">尚無遺物</span></div>
 
 <div id="main">
-  <!-- 上：敵人橫排 -->
-  <div id="enemy-portraits"></div>
-
-  <!-- 中：LOG -->
-  <div id="battle-log"></div>
-
-  <!-- 下：角色 + 手牌 + 結束回合 -->
-  <div id="bottom-row">
+  <!-- 手機版：左欄（敵人1 + 角色卡），右欄（敵人2+ + 手牌） -->
+  <div id="left-col">
+    <div id="enemy-first"></div>
     <!-- 角色卡片 -->
     <div id="ally-card" class="enemy-portrait-card" style="cursor:default;border-color:#553355;">
       <div class="ep-img-area">
@@ -1113,7 +1106,10 @@ body {
         <div id="ally-mechanic-hint"></div>
       </div>
     </div>
+  </div><!-- #left-col -->
 
+  <div id="right-col">
+    <div id="enemy-rest"></div>
     <!-- 手牌面板 -->
     <div id="hand-panel">
       <!-- 專屬計數效果說明列 -->
@@ -1129,7 +1125,11 @@ body {
       <!-- 選取效果顯示列（手機版手牌下方） -->
       <div id="selection-bar"></div>
     </div>
-  </div>
+  </div><!-- #right-col -->
+
+  <!-- LOG：桌面版維持原本位置，手機版靠 CSS order 放在中間 -->
+  <div id="battle-log"></div>
+
 </div>
 
 <!-- Reward Modal（遺物選擇） -->
@@ -3281,15 +3281,15 @@ function updateMood(){
 function renderAll(){ renderEnemies(); renderHP(); renderHand(); renderCounters(); renderDeckInfo(); updateMood(); renderRelicBar(); renderXsGrace(); renderZzFury(); renderLzDot(); renderAllyMechanicHint(); }
 
 function renderEnemies(){
-  const el=document.getElementById('enemy-portraits'); el.innerHTML='';
-  // 手機版：其餘敵人放進 grid wrapper
-  const isMobile = window.innerWidth <= 600;
-  let restGrid = null;
-  if(isMobile && G.enemies.filter(e=>!e.dead).length > 1){
-    restGrid = document.createElement('div');
-    restGrid.id = 'enemy-rest-grid';
-  }
-  G.enemies.forEach((e, idx)=>{
+  const elFirst = document.getElementById('enemy-first');
+  const elRest = document.getElementById('enemy-rest');
+  // fallback for desktop which still uses enemy-portraits
+  const elLegacy = document.getElementById('enemy-portraits');
+  if(elFirst) elFirst.innerHTML = '';
+  if(elRest) elRest.innerHTML = '';
+  if(elLegacy) elLegacy.innerHTML = '';
+
+  G.enemies.forEach((e, idx) => {
     const div=document.createElement('div');
     div.className='enemy-portrait-card'+(e.dead?' dead':'')+(e.id===G.targeted&&!e.dead?' targeted':'')+(e.stunned>0?' stunned':'');
     div.setAttribute('data-eid',e.id);
@@ -3330,9 +3330,9 @@ function renderEnemies(){
     else intentText='下回合攻擊 '+(e.dmg||0);
 
     const dotBadge = '';
-
+    const showImg = idx === 0; // 只有第一個敵人顯示圖片
     div.innerHTML=
-      `<div class="ep-img-area">${imgHtml}${phHtml}</div>`+
+      `<div class="ep-img-area"${showImg?'':' style="display:none"'}>${imgHtml}${phHtml}</div>`+
       `<div class="ep-info">`+
       `<div class="ep-name">${e.name}${dotBadge}</div>`+
       `<div class="ep-tags">`+
@@ -3345,13 +3345,12 @@ function renderEnemies(){
       `<div class="${e.stunned>0?'ep-stun':'ep-intent'}">${intentText}</div>`+
       `</div>`;
 
-    if(isMobile && idx > 0 && restGrid){
-      restGrid.appendChild(div);
+    if(idx === 0){
+      (elFirst || elLegacy).appendChild(div);
     } else {
-      el.appendChild(div);
+      (elRest || elLegacy).appendChild(div);
     }
   });
-  if(restGrid && restGrid.children.length > 0) el.appendChild(restGrid);
 }
 
 function renderHP(){
