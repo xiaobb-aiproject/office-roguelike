@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
 <html lang="zh-TW">
 <head>
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -769,95 +769,130 @@ body {
   pointer-events: none;
 }
 /* ── MOBILE ── */
+
+/* 桌面版隱藏手機專用元素 */
+#end-turn-col { display: none; }
+#selection-bar { display: none; }
+#ally-mechanic-hint { display: none; }
+
 @media (max-width: 600px) {
 
-  body {
-    font-size: 15px;
-    overflow-y: auto;
-    height: calc(var(--vh, 1vh) * 100);
-  }
+  body { font-size: 15px; overflow-y: auto; height: calc(var(--vh, 1vh) * 100); }
 
   /* 房間列 */
   #top { padding: 6px 12px; font-size: 13px; }
   #room-label { font-size: 14px; }
 
-  /* 遺物列：可換行 */
-  #relic-bar { font-size: 11px; padding: 4px 10px; flex-wrap: wrap; gap: 5px; }
+  /* 遺物列：可換行，第二排預留空間 */
+  #relic-bar { font-size: 11px; padding: 4px 10px; flex-wrap: wrap; gap: 5px; min-height: 28px; }
   .relic-chip .relic-tip { display: none; white-space: normal; min-width: 140px; font-size: 11px; }
   .relic-chip.tip-open .relic-tip { display: block; }
 
-  /* 敵人區：橫排，第一個完整 2:3，其餘扁長條無圖 */
+  /* 敵人區 */
   #enemy-portraits {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
     gap: 6px;
     padding: 6px 8px;
-    overflow-x: auto;
+    overflow-x: visible;
   }
-  #enemy-portraits .enemy-portrait-card:first-child { width: 90px; flex-shrink: 0; }
-  #enemy-portraits .enemy-portrait-card:first-child .ep-img-area { width: 90px !important; height: 135px !important; }
+  /* 第一個敵人：左圖右資訊，與角色卡同寬 */
+  #enemy-portraits .enemy-portrait-card:first-child {
+    width: 90px;
+    flex-shrink: 0;
+  }
+  #enemy-portraits .enemy-portrait-card:first-child .ep-img-area {
+    width: 90px !important;
+    height: 135px !important;
+  }
+  /* 其餘敵人：右側彈性填滿，扁長條無圖 */
   #enemy-portraits .enemy-portrait-card:not(:first-child) {
     flex: 1;
-    min-width: 70px;
-    flex-shrink: 0;
+    min-width: 0;
   }
   #enemy-portraits .enemy-portrait-card:not(:first-child) .ep-img-area { display: none; }
   .ep-name { font-size: 11px; }
   .ep-hp-track { height: 5px !important; }
   .ep-intent, .ep-stun { font-size: 9px; }
 
-  /* LOG */
-  #battle-log { max-height: 100px; font-size: 12px; padding: 5px 10px; }
+  /* LOG：至少 2~3 行 */
+  #battle-log { min-height: 52px; max-height: 80px; font-size: 12px; padding: 5px 10px; }
 
-  /* 下排：角色左 手牌右 */
-  #bottom-row { flex-direction: row; align-items: stretch; padding: 6px 8px; gap: 8px; }
+  /* 下排 */
+  #bottom-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    padding: 6px 0 0 8px;
+    gap: 0;
+    flex: 1;
+  }
 
-  /* 角色卡：2:3 */
+  /* 角色卡：與第一個敵人同寬 90px，2:3 */
   #ally-card {
-    width: 80px !important;
+    width: 90px !important;
     flex-direction: column !important;
     flex-shrink: 0;
     height: auto !important;
     border-right: 1px solid var(--border) !important;
     border-bottom: none !important;
+    border-radius: 4px 0 0 4px;
   }
-  #ally-card .ep-img-area { width: 80px !important; height: 120px !important; flex-shrink: 0; }
-  #ally-card .ep-info { padding: 4px 5px; }
-  #ally-card .ep-name { font-size: 11px; }
+  #ally-card .ep-img-area { width: 90px !important; height: 135px !important; flex-shrink: 0; }
+  #ally-card .ep-info { padding: 4px 6px; flex: 1; display: flex; flex-direction: column; }
+  #ally-card .ep-name { font-size: 12px; }
+  #ally-card .ep-tags { margin-bottom: 2px; }
   #ally-card .ep-hp-track { height: 5px !important; }
+  /* 專屬機制 */
+  #ally-mechanic-hint {
+    display: block;
+    font-size: 9px;
+    color: #9977bb;
+    line-height: 1.5;
+    margin-top: 4px;
+    flex: 1;
+    overflow: hidden;
+  }
 
-  /* 手牌面板 */
-  #hand-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  /* 手牌面板：佔中間剩餘空間 */
+  #hand-panel {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 0 6px;
+  }
 
   /* 計數器 */
-  #counters { flex-wrap: wrap; gap: 5px; padding: 4px 6px; font-size: 12px; }
-  .counter-val { font-size: 14px; }
-  .counter-label { font-size: 10px; }
-  .counter-dot { width: 8px; height: 8px; }
+  #counters { flex-wrap: wrap; gap: 4px; padding: 3px 4px; font-size: 11px; }
+  .counter-val { font-size: 13px; }
+  .counter-label { font-size: 9px; }
+  .counter-dot { width: 7px; height: 7px; }
   #mechanic-hint { display: none; }
 
-  /* 手牌：單行橫排，扁長條 */
+  /* 手牌：扁長條縱列 */
   #hand-cards {
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    padding: 4px 2px;
+    gap: 4px;
+    padding: 4px 0;
     flex: 1;
     overflow-y: auto;
   }
   .card {
     width: auto !important;
     min-height: unset !important;
-    height: 44px !important;
-    padding: 6px 8px !important;
+    height: 40px !important;
+    padding: 0 8px !important;
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 8px;
+    border-radius: 4px;
   }
-  .card-tag { font-size: 10px !important; padding: 2px 5px !important; }
-  .card-name { font-size: 13px !important; }
+  .card-tag { font-size: 10px !important; padding: 2px 5px !important; flex-shrink: 0; }
+  .card-name { font-size: 13px !important; flex: 1; }
   .card-desc { display: none !important; }
   .card-threshold { display: none !important; }
   /* 長按顯示效果 */
@@ -865,11 +900,57 @@ body {
     display: block !important;
     font-size: 10px !important;
     color: var(--text-muted);
-    margin-top: 2px;
+    flex: none;
+    width: 100%;
+  }
+  .card.show-desc {
+    height: auto !important;
+    flex-wrap: wrap;
+    padding: 6px 8px !important;
+    align-items: flex-start;
   }
 
-  /* 結束回合 */
-  #end-turn-btn { font-size: 14px !important; padding: 10px !important; letter-spacing: 2px; margin-top: 6px; width: 100%; }
+  /* 結束回合：右側直排 */
+  #end-turn-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 36px;
+    flex-shrink: 0;
+    border-left: 1px solid var(--border);
+    margin-left: 6px;
+  }
+  #end-turn-btn {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 13px !important;
+    padding: 16px 6px !important;
+    letter-spacing: 4px;
+    height: 100%;
+    width: 36px;
+    border-radius: 0 4px 4px 0;
+    border: none;
+    border-left: 1px solid #6644aa;
+    background: transparent;
+    color: #c8bae8;
+    cursor: pointer;
+  }
+  #end-turn-btn:disabled { opacity: .3; }
+  /* 桌面版結束回合位置不變 */
+  #btn-row { display: none; }
+
+  /* 選取效果顯示列 */
+  #selection-bar {
+    display: block;
+    min-height: 32px;
+    padding: 5px 10px;
+    font-size: 11px;
+    color: #9977bb;
+    border-top: 1px solid var(--border);
+    letter-spacing: 0.5px;
+    line-height: 1.5;
+  }
 
   /* Modal */
   .modal { padding: 16px; }
@@ -983,9 +1064,9 @@ body {
   <!-- 中：LOG -->
   <div id="battle-log"></div>
 
-  <!-- 下：角色 + 手牌 -->
+  <!-- 下：角色 + 手牌 + 結束回合 -->
   <div id="bottom-row">
-    <!-- 角色卡片（與敵人同格式） -->
+    <!-- 角色卡片 -->
     <div id="ally-card" class="enemy-portrait-card" style="cursor:default;border-color:#553355;">
       <div class="ep-img-area">
         <img src="xiaoxue.png" alt="小雪" onerror="this.style.display='none';document.getElementById('ally-ph').style.display='flex'">
@@ -1000,6 +1081,8 @@ body {
           <div class="ep-hp-track"><div class="ep-hp-fill ehp-b" id="portrait-hp-bar" style="width:100%"></div></div>
           <span style="font-size:8px;color:#AAA;min-width:40px;text-align:right;" id="portrait-hp-text">75/75</span>
         </div>
+        <!-- 角色專屬機制（手機版顯示） -->
+        <div id="ally-mechanic-hint"></div>
       </div>
     </div>
 
@@ -1042,16 +1125,20 @@ body {
         <span style="font-size:9px;color:var(--text-muted);">技能 <span id="di-skill" style="color:#9966cc;">0</span></span>
         <div style="flex:1"></div>
       </div>
-      <!-- 專屬計數效果說明列 -->
+      <!-- 專屬計數效果說明列（桌面版） -->
       <div id="mechanic-hint" style="font-size:9px;color:#9977bb;letter-spacing:1px;padding:2px 6px 4px;min-height:14px;"></div>
       <!-- 手牌 -->
       <div id="hand-cards"></div>
-      <!-- 按鈕列 -->
-      <div id="btn-row">
-        <button id="end-turn-btn" onclick="endTurn()">結束回合</button>
-      </div>
+    </div>
+
+    <!-- 結束回合（手機版直排貼右） -->
+    <div id="end-turn-col">
+      <button id="end-turn-btn" onclick="endTurn()">結束回合</button>
     </div>
   </div>
+
+  <!-- 選取效果顯示列（手機版底部） -->
+  <div id="selection-bar"></div>
 </div>
 
 <!-- Reward Modal（遺物選擇） -->
@@ -2113,14 +2200,56 @@ function xsTriggerGrace(G){
   renderXsGrace();
 }
 
+function renderAllyMechanicHint(){
+  const el = document.getElementById('ally-mechanic-hint');
+  if(!el) return;
+  if(!G || !G.charId){ el.textContent=''; return; }
+  let lines = [];
+  if(G.charId==='xiaoxue'){
+    const grace = G.xs_grace||0;
+    lines.push('儀態 '+grace);
+    lines.push('輔助牌 → 儀態+1');
+    lines.push('回合結束 儀態×5 HP');
+    lines.push('溢出 → 對敵傷害');
+  } else if(G.charId==='lingzi'){
+    const dep = G.lz_depression||0;
+    lines.push('陰鬱 '+dep);
+    lines.push('輔助牌 → 陰鬱+1');
+    lines.push('回合結束 毒傷');
+  } else if(G.charId==='zizi'){
+    const fury = G.zz_fury||0;
+    lines.push('亢奮 '+fury);
+    lines.push('攻擊牌 → 亢奮+1');
+    lines.push('每次攻擊 +亢奮傷害');
+  }
+  el.innerHTML = lines.join('<br>');
+}
+
+function updateSelectionBar(){
+  const bar = document.getElementById('selection-bar');
+  if(!bar || !G || !G.hand) return;
+  const sel = G.hand.filter(c=>c.selected);
+  if(sel.length===0){ bar.textContent=''; return; }
+  const parts = sel.map(c=>{
+    const tag = c.type==='atk' ? '攻' : '輔';
+    const desc = (c.desc||'')
+      .replace('造成 ? 點傷害','造成 '+G.atkPower+' 點傷害')
+      .replace('回復 ? HP','回復 '+G.healPower+' HP');
+    return '['+tag+'] '+c.name+'：'+desc;
+  });
+  bar.innerHTML = parts.join('<br>');
+}
+
 function renderLzDot(){
   const el = document.getElementById('lz-dot-val');
   if(el) el.textContent = G.lz_depression || 0;
+  renderAllyMechanicHint();
 }
 
 function renderXsGrace(){
   const el = document.getElementById('xs-grace-val');
   if(el) el.textContent = G.xs_grace || 0;
+  renderAllyMechanicHint();
 }
 
 // ══════════════════════════════════════════════════════
@@ -2152,6 +2281,7 @@ function lzDotBurst(G){
 function renderZzFury(){
   const el = document.getElementById('zz-fury-val');
   if(el) el.textContent = G.zz_fury || 0;
+  renderAllyMechanicHint();
 }
 
 function multiHitFury(G, base, times, extraFuryPerHit){
@@ -3157,7 +3287,7 @@ function updateMood(){
   }
 }
 
-function renderAll(){ renderEnemies(); renderHP(); renderHand(); renderCounters(); renderDeckInfo(); updateMood(); renderRelicBar(); renderXsGrace(); renderZzFury(); renderLzDot(); }
+function renderAll(){ renderEnemies(); renderHP(); renderHand(); renderCounters(); renderDeckInfo(); updateMood(); renderRelicBar(); renderXsGrace(); renderZzFury(); renderLzDot(); renderAllyMechanicHint(); }
 
 function renderEnemies(){
   const el=document.getElementById('enemy-portraits'); el.innerHTML='';
@@ -3248,11 +3378,12 @@ function renderHand(){
       '<div class="card-name">'+(charmed?'無法使用':c.name)+'</div>'+
       '<div class="card-desc">'+displayDesc+'</div>'+
       threshHtml;
-    div.onclick=()=>playCard(c.uid);
+    div.onclick=()=>{ playCard(c.uid); updateSelectionBar(); };
     el.appendChild(div);
   });
   const pc=document.getElementById('played-count'); if(pc) pc.textContent=G.hand.filter(c=>c.selected).length;
   const dn=document.getElementById('draw-num'); if(dn) dn.textContent=G.deck.length;
+  updateSelectionBar();
 }
 
 function renderCounters(){
