@@ -784,7 +784,7 @@ body {
   #room-label { font-size: 14px; }
 
   /* 遺物列：可換行，第二排預留空間 */
-  #relic-bar { font-size: 11px; padding: 4px 10px; flex-wrap: wrap; gap: 5px; min-height: 28px; }
+  #relic-bar { font-size: 11px; padding: 4px 10px; flex-wrap: wrap; gap: 5px; min-height: 84px; }
   .relic-chip .relic-tip { display: none; white-space: normal; min-width: 140px; font-size: 11px; }
   .relic-chip.tip-open .relic-tip { display: block; }
 
@@ -835,9 +835,9 @@ body {
     flex-direction: column !important;
     flex-shrink: 0;
     height: auto !important;
-    border-right: 1px solid var(--border) !important;
-    border-bottom: none !important;
-    border-radius: 4px 0 0 4px;
+    border: 1px solid #9966cc !important;
+    box-shadow: 0 0 8px #66339933;
+    border-radius: 8px !important;
   }
   #ally-card .ep-img-area { width: 90px !important; height: 135px !important; flex-shrink: 0; }
   #ally-card .ep-info { padding: 4px 6px; flex: 1; display: flex; flex-direction: column; }
@@ -865,7 +865,8 @@ body {
   }
 
   /* 計數器 */
-  #counters { flex-wrap: wrap; gap: 4px; padding: 3px 4px; font-size: 11px; }
+  #counters { flex-direction: column; align-items: flex-start; gap: 2px; padding: 3px 4px; font-size: 11px; }
+  #counters > div[style*="width:1px"], #counters > div[style*="flex:1"] { display: none !important; }
   .counter-val { font-size: 13px; }
   .counter-label { font-size: 9px; }
   .counter-dot { width: 7px; height: 7px; }
@@ -916,10 +917,11 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 36px;
+    width: 40px;
     flex-shrink: 0;
-    border-left: 1px solid var(--border);
     margin-left: 6px;
+    margin-right: 6px;
+    padding: 4px 0;
   }
   #end-turn-btn {
     writing-mode: vertical-rl;
@@ -929,13 +931,14 @@ body {
     letter-spacing: 4px;
     height: 100%;
     width: 36px;
-    border-radius: 0 4px 4px 0;
-    border: none;
-    border-left: 1px solid #6644aa;
+    border-radius: 8px;
+    border: 1px solid #6644aa;
     background: transparent;
     color: #c8bae8;
     cursor: pointer;
+    transition: background .15s, border-color .15s;
   }
+  #end-turn-btn:hover { background: #1a1030; border-color: #9966cc; }
   #end-turn-btn:disabled { opacity: .3; }
   /* 桌面版結束回合位置不變 */
   #btn-row { display: none; }
@@ -1088,6 +1091,8 @@ body {
 
     <!-- 手牌面板 -->
     <div id="hand-panel">
+      <!-- 專屬計數效果說明列（桌面版） -->
+      <div id="mechanic-hint" style="font-size:9px;color:#9977bb;letter-spacing:1px;padding:2px 6px 4px;min-height:14px;"></div>
       <!-- 計數器列 -->
       <div id="counters">
         <div class="counter">
@@ -1120,13 +1125,11 @@ body {
         </div>
         <div style="width:1px;background:var(--border);margin:0 4px;self-align:stretch;"></div>
         <span style="font-size:9px;color:var(--text-muted);">牌組 <span id="di-total" style="color:var(--text-dim);">10</span></span>
-        <span style="font-size:9px;color:var(--text-muted);">攻 <span id="di-atk" style="color:#6688cc;">6</span></span>
-        <span style="font-size:9px;color:var(--text-muted);">輔 <span id="di-sup" style="color:#cc6688;">4</span></span>
-        <span style="font-size:9px;color:var(--text-muted);">技能 <span id="di-skill" style="color:#9966cc;">0</span></span>
+        <span id="di-atk" style="display:none">0</span>
+        <span id="di-sup" style="display:none">0</span>
+        <span id="di-skill" style="display:none">0</span>
         <div style="flex:1"></div>
       </div>
-      <!-- 專屬計數效果說明列（桌面版） -->
-      <div id="mechanic-hint" style="font-size:9px;color:#9977bb;letter-spacing:1px;padding:2px 6px 4px;min-height:14px;"></div>
       <!-- 手牌 -->
       <div id="hand-cards"></div>
     </div>
