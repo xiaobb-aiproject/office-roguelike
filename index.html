@@ -37,11 +37,23 @@
 * { box-sizing: border-box; margin: 0; }
 
 body {
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  margin: 0;
+}
+
+#game {
+  position: relative;
   background: var(--bg);
   color: var(--text);
   font-family: 'Share Tech Mono', monospace;
   font-size: 13px;
+  width: min(390px, 100vw);
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -394,23 +406,6 @@ body {
 .card.charmed-card .card-name { color: #bb77ee; }
 .card.charmed-card .card-desc { color: #7744aa; }
 
-#end-turn-btn {
-  width: 100%;
-  margin-top: 6px;
-  padding: 7px;
-  background: transparent;
-  border: 1px solid #332244;
-  border-radius: 3px;
-  color: #9966cc;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
-  cursor: pointer;
-  letter-spacing: 2px;
-  transition: all .15s;
-}
-#end-turn-btn:hover { background: #1a0a2a; border-color: #9966cc; }
-#end-turn-btn:disabled { opacity: .3; cursor: not-allowed; }
-
 /* ── DECK INFO BAR ── */
 #deck-info {
   display: flex;
@@ -503,7 +498,7 @@ body {
 /* overlay */
 #overlay {
   display: none;
-  position: fixed; inset: 0;
+  position: absolute; inset: 0;
   background: #000000f0;
   z-index: 200;
   align-items: center;
@@ -533,7 +528,7 @@ body {
 
 /* ── 選角介面 ── */
 #mode-select, #demo-select {
-  position: fixed; inset: 0; display: flex; flex-direction: column;
+  position: absolute; inset: 0; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 20px;
   background: var(--bg); z-index: 400; padding: 24px;
 }
@@ -552,7 +547,7 @@ body {
 .demo-boss-chip.selected { background: #3a1a4a; border-color: #9966cc; color: #ddaaff; }
 
 #char-select {
-  position: fixed; inset: 0;
+  position: absolute; inset: 0;
   background: var(--bg);
   z-index: 300;
   display: flex;
@@ -757,7 +752,7 @@ body {
 /* 生理期提示 */
 #period-notice {
   display: none;
-  position: fixed;
+  position: absolute;
   top: 40px; left: 50%;
   transform: translateX(-50%);
   background: #1a0810;
@@ -772,220 +767,224 @@ body {
 }
 /* ── MOBILE ── */
 
-/* 桌面版隱藏手機專用元素 */
-#end-turn-col { display: none; }
-#selection-bar { display: none; }
+/* 手機版元素預設顯示 */
+#end-turn-col { display: contents; }
 #ally-mechanic-hint { display: none; }
 
-@media (max-width: 600px) {
 
-  body { font-size: 15px; overflow-y: auto; height: calc(var(--vh, 1vh) * 100); }
 
-  /* 房間列 */
-  #top { padding: 6px 12px; font-size: 13px; }
-  #room-label { font-size: 14px; }
+body { font-size: 15px; overflow-y: auto; height: calc(var(--vh, 1vh) * 100); }
 
-  /* 遺物列：可換行，第二排預留空間 */
-  #relic-bar { font-size: 11px; padding: 4px 10px; flex-wrap: wrap; gap: 5px; min-height: 84px; align-content: flex-start; align-items: flex-start; }
-  .relic-chip .relic-tip { display: none !important; }
-  .relic-chip.tip-open .relic-tip { display: none !important; }
+/* 房間列 */
+#top { padding: 6px 12px; font-size: 13px; }
+#room-label { font-size: 14px; }
 
-  /* 整體 main：上下排列 */
-  #main { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+/* 遺物列：可換行，第二排預留空間 */
+#relic-bar { font-size: 11px; padding: 4px 10px; flex-wrap: wrap; gap: 5px; min-height: 84px; align-content: flex-start; align-items: flex-start; }
+.relic-chip .relic-tip { display: none !important; }
+.relic-chip.tip-open .relic-tip { display: none !important; }
 
-  /* 敵人區：左右兩欄，first 對齊角色卡，rest 對齊手牌 */
-  #enemy-portraits {
-    display: flex;
-    flex-direction: row;
-    gap: 6px;
-    padding: 6px 6px 0;
-    background: #08060e;
-    border-bottom: none;
-    overflow: visible;
-    flex-shrink: 0;
-  }
-  #enemy-first {
-    width: 81px;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-  }
-  #enemy-first .enemy-portrait-card { width: 81px !important; }
-  #enemy-first .ep-img-area { width: 81px !important; height: 122px !important; }
-  #enemy-rest {
-    flex: 1;
-    min-width: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-  }
-  #enemy-rest .enemy-portrait-card { width: 100% !important; }
-  #enemy-rest .ep-img-area { display: none !important; }
+/* 整體 main：上下排列 */
+#main { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 
-  .ep-name { font-size: 11px; }
-  .ep-hp-track { height: 5px !important; }
-  .ep-intent, .ep-stun { font-size: 9px; }
-
-  /* LOG */
-  #battle-log { min-height: 52px; max-height: 80px; font-size: 12px; padding: 5px 6px; }
-
-  /* 下排：左右兩欄，角色 81px + 手牌剩餘 */
-  #bottom-row {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    padding: 6px 6px 0;
-    gap: 6px;
-    flex: 1;
-    border-top: none;
-    background: transparent;
-  }
-
-  /* 角色卡 */
-  #ally-card {
-    width: 81px !important;
-    flex-direction: column !important;
-    flex-shrink: 0;
-    height: auto !important;
-    border: 1px solid #9966cc !important;
-    box-shadow: 0 0 8px #66339933;
-    border-radius: 8px !important;
-    border-right: 1px solid #9966cc !important;
-    background: var(--bg3);
-  }
-  #ally-card .ep-img-area { width: 81px !important; height: 122px !important; flex-shrink: 0; }
-  #ally-card .ep-info { padding: 4px 6px; flex: 1; display: flex; flex-direction: column; }
-  #ally-card .ep-name { font-size: 12px; }
-  #ally-card .ep-tags { margin-bottom: 2px; }
-  #ally-card .ep-hp-track { height: 5px !important; }
-  #ally-mechanic-hint { display: none !important; }
-
-  /* 計數器：角色卡內縱向 */
-  #counters { flex-direction: column; align-items: flex-start; gap: 2px; padding: 3px 0 0; font-size: 11px; background: none; border: none; }
-  #counters > div[style*="width:1px"], #counters > div[style*="flex:1"] { display: none !important; }
-  .counter-val { font-size: 12px; }
-  .counter-label { font-size: 9px; }
-  .counter-dot { width: 7px; height: 7px; }
-
-  /* 手牌面板 */
-  #hand-panel {
-    flex: 1;
-    min-width: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-auto-rows: min-content;
-    gap: 4px;
-    padding: 4px 0;
-    align-content: start;
-    overflow-y: auto;
-  }
-
-  /* mechanic-hint 頂部橫列 */
-  #mechanic-hint { display: block; grid-column: 1 / -1; font-size: 9px; color: #9977bb; padding: 3px 6px; border-bottom: 1px solid var(--border); white-space: normal; line-height: 1.5; min-height: 0; }
-
-  /* 手牌：內部也是 grid，跨兩欄 */
-  #hand-cards {
-    display: contents; /* 子元素直接參與 hand-panel grid */
-  }
-  .card {
-    width: auto !important;
-    min-width: 0 !important;
-    min-height: unset !important;
-    height: 52px !important;
-    padding: 0 8px !important;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-    border-radius: 6px;
-    margin: 0;
-  }
-  .card-tag { font-size: 9px !important; padding: 2px 4px !important; flex-shrink: 0; }
-  .card-name { font-size: 12px !important; flex: 1; line-height: 1.2; }
-  .card-desc { display: none !important; }
-  .card-threshold { display: none !important; }
-  .card.show-desc .card-desc {
-    display: block !important;
-    font-size: 10px !important;
-    color: var(--text-muted);
-    flex: none;
-    width: 100%;
-  }
-  .card.show-desc {
-    height: auto !important;
-    flex-wrap: wrap;
-    padding: 6px 8px !important;
-    align-items: flex-start;
-  }
-
-  /* 結束回合：直接是 grid 的最後一格 */
-  #end-turn-col { display: contents; }
-  #end-turn-btn {
-    writing-mode: horizontal-tb !important;
-    font-size: 11px !important;
-    padding: 0 6px !important;
-    letter-spacing: 1px;
-    height: 52px !important;
-    width: auto !important;
-    border-radius: 6px;
-    border: 1px solid #6644aa;
-    background: transparent;
-    color: #c8bae8;
-    cursor: pointer;
-    transition: background .15s, border-color .15s;
-    margin: 0;
-    align-self: start;
-  }
-  #end-turn-btn:hover { background: #1a1030; border-color: #9966cc; }
-  #end-turn-btn:disabled { opacity: .3; }
-  #btn-row { display: none; }
-
-  /* selection-bar：固定在畫面底部，左側留出角色卡寬度 */
-  #selection-bar {
-    display: block;
-    min-height: 40px;
-    padding: 5px 8px;
-    font-size: 11px;
-    color: #9977bb;
-    border-top: 1px solid var(--border);
-    letter-spacing: 0.5px;
-    line-height: 1.5;
-    flex-shrink: 0;
-    position: fixed;
-    bottom: 0;
-    left: calc(81px + 12px); /* 角色卡寬度 + gap */
-    right: 0;
-    z-index: 101;
-    background: var(--bg);
-  }
-  .modal { padding: 16px; }
-  .modal-title { font-size: 18px !important; }
-  .modal-sub { font-size: 13px !important; }
-  .relic-reward-card { width: auto !important; max-width: 100% !important; padding: 10px 8px !important; }
-  #reward-choices { flex-direction: column !important; flex-wrap: nowrap !important; align-items: stretch !important; width: 100% !important; max-width: 100% !important; }
-  .rrc-name { font-size: 13px !important; }
-  .rrc-desc { font-size: 11px !important; }
-  .rc-skip { font-size: 14px !important; padding: 10px 24px !important; }
-
-  /* 選角畫面 */
-  #char-select { position: fixed; overflow-y: auto; justify-content: flex-start; padding: 24px 16px 40px; gap: 16px; }
-  #char-cards { flex-direction: column !important; align-items: center; gap: 14px; width: 100%; }
-  .char-card { width: 85% !important; max-width: 300px; flex-direction: row !important; height: auto !important; }
-  .char-img-area { width: 80px !important; height: 120px !important; flex-shrink: 0; }
-  .char-info { flex: 1; padding: 10px 12px; }
-  .char-name { font-size: 16px !important; }
-  .char-role { font-size: 11px !important; }
-  .char-desc { font-size: 11px !important; line-height: 1.5; }
-  #char-confirm { font-size: 16px !important; padding: 12px 40px !important; margin-top: 8px; }
-
-  /* overlay */
-  #overlay-title { font-size: 28px !important; }
-  #overlay-sub { font-size: 16px !important; }
+/* 敵人區：左右兩欄，first 對齊角色卡，rest 對齊手牌 */
+#enemy-portraits {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  padding: 6px 6px 0;
+  background: #08060e;
+  border-bottom: none;
+  overflow: visible;
+  flex-shrink: 0;
 }
+#enemy-first {
+  width: 81px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+#enemy-first .enemy-portrait-card { width: 81px !important; }
+#enemy-first .ep-img-area { width: 81px !important; height: 122px !important; }
+#enemy-rest {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+#enemy-rest .enemy-portrait-card { width: 100% !important; }
+#enemy-rest .ep-img-area { display: none !important; }
+
+.ep-name { font-size: 11px; }
+.ep-hp-track { height: 5px !important; }
+.ep-intent, .ep-stun { font-size: 9px; }
+
+/* LOG */
+#battle-log { min-height: 52px; max-height: 80px; font-size: 12px; padding: 5px 6px; }
+
+/* 下排：左右兩欄，角色 81px + 手牌剩餘 */
+#bottom-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 6px 6px 0;
+  gap: 6px;
+  flex: 1;
+  border-top: none;
+  background: transparent;
+}
+
+/* 角色卡 */
+#ally-card {
+  width: 81px !important;
+  flex-direction: column !important;
+  flex-shrink: 0;
+  height: auto !important;
+  border: 1px solid #9966cc !important;
+  box-shadow: 0 0 8px #66339933;
+  border-radius: 8px !important;
+  border-right: 1px solid #9966cc !important;
+  background: var(--bg3);
+}
+#ally-card .ep-img-area { width: 81px !important; height: 122px !important; flex-shrink: 0; }
+#ally-card .ep-info { padding: 4px 6px; flex: 1; display: flex; flex-direction: column; }
+#ally-card .ep-name { font-size: 12px; }
+#ally-card .ep-tags { margin-bottom: 2px; }
+#ally-card .ep-hp-track { height: 5px !important; }
+#ally-mechanic-hint { display: none !important; }
+
+/* 計數器：角色卡內縱向 */
+#counters { flex-direction: column; align-items: flex-start; gap: 2px; padding: 3px 0 0; font-size: 11px; background: none; border: none; }
+#counters > div[style*="width:1px"], #counters > div[style*="flex:1"] { display: none !important; }
+.counter-val { font-size: 12px; }
+.counter-label { font-size: 9px; }
+.counter-dot { width: 7px; height: 7px; }
+
+/* 手牌面板 */
+#hand-panel {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: min-content;
+  gap: 4px;
+  padding: 4px 0;
+  align-content: start;
+  overflow-y: auto;
+}
+
+/* mechanic-hint 頂部橫列 */
+#mechanic-hint { display: block; grid-column: 1 / -1; font-size: 9px; color: #9977bb; padding: 3px 6px; border-bottom: 1px solid var(--border); white-space: normal; line-height: 1.5; min-height: 0; }
+
+/* 手牌：內部也是 grid，跨兩欄 */
+#hand-cards {
+  display: contents; /* 子元素直接參與 hand-panel grid */
+}
+.card {
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: unset !important;
+  height: 52px !important;
+  padding: 0 8px !important;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+  margin: 0;
+}
+.card-tag { font-size: 9px !important; padding: 2px 4px !important; flex-shrink: 0; }
+.card-name { font-size: 12px !important; flex: 1; line-height: 1.2; }
+.card-desc { display: none !important; }
+.card-threshold { display: none !important; }
+.card.show-desc .card-desc {
+  display: block !important;
+  font-size: 10px !important;
+  color: var(--text-muted);
+  flex: none;
+  width: 100%;
+}
+.card.show-desc {
+  height: auto !important;
+  flex-wrap: wrap;
+  padding: 6px 8px !important;
+  align-items: flex-start;
+}
+
+/* 結束回合：直接是 grid 的最後一格 */
+#end-turn-col { display: contents; }
+#end-turn-btn {
+  font-size: 12px !important;
+  padding: 0 8px !important;
+  letter-spacing: 1px;
+  height: 52px !important;
+  width: auto !important;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: #d4c8e8;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  transition: border-color .15s, box-shadow .15s;
+  margin: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#end-turn-btn:hover { border-color: #9966cc; box-shadow: 0 0 12px #66339933; }
+#end-turn-btn:disabled { opacity: .3; cursor: not-allowed; }
+#end-turn-btn:hover { background: #1a1030; border-color: #9966cc; }
+#end-turn-btn:disabled { opacity: .3; }
+#btn-row { display: none; }
+
+/* selection-bar：絕對定位在 #game 底部，左側留出角色卡寬度 */
+#selection-bar {
+  display: block;
+  min-height: 40px;
+  padding: 5px 8px;
+  font-size: 11px;
+  color: #9977bb;
+  border-top: 1px solid var(--border);
+  letter-spacing: 0.5px;
+  line-height: 1.5;
+  flex-shrink: 0;
+  position: absolute;
+  bottom: 0;
+  left: calc(81px + 12px);
+  right: 0;
+  z-index: 101;
+  background: var(--bg);
+}
+.modal { padding: 16px; }
+.modal-title { font-size: 18px !important; }
+.modal-sub { font-size: 13px !important; }
+.relic-reward-card { width: auto !important; max-width: 100% !important; padding: 10px 8px !important; }
+#reward-choices { flex-direction: column !important; flex-wrap: nowrap !important; align-items: stretch !important; width: 100% !important; max-width: 100% !important; }
+.rrc-name { font-size: 13px !important; }
+.rrc-desc { font-size: 11px !important; }
+.rc-skip { font-size: 14px !important; padding: 10px 24px !important; }
+
+/* 選角畫面 */
+#char-select { position: absolute; overflow-y: auto; justify-content: flex-start; padding: 24px 16px 40px; gap: 16px; }
+#char-cards { flex-direction: column !important; align-items: center; gap: 14px; width: 100%; }
+.char-card { width: 85% !important; max-width: 300px; flex-direction: row !important; height: auto !important; }
+.char-img-area { width: 80px !important; height: 120px !important; flex-shrink: 0; }
+.char-info { flex: 1; padding: 10px 12px; }
+.char-name { font-size: 16px !important; }
+.char-role { font-size: 11px !important; }
+.char-desc { font-size: 11px !important; line-height: 1.5; }
+#char-confirm { font-size: 16px !important; padding: 12px 40px !important; margin-top: 8px; }
+
+/* overlay */
+#overlay-title { font-size: 28px !important; }
+#overlay-sub { font-size: 16px !important; }
 
 </style>
 </head>
 <body>
+<div id="game">
 
 <!-- 選角介面 -->
 <div id="mode-select">
@@ -1159,6 +1158,10 @@ body {
 </div>
 
 <script>
+function setEndTurnDisabled(val){
+  const b = document.getElementById('end-turn-btn');
+  if(b) b.disabled = val;
+}
 // ── 手機：遺物點擊顯示 tooltip（取代 hover）──
 function setVh(){
   document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01)+'px');
@@ -1190,9 +1193,8 @@ window.addEventListener('resize', setVh);
 document.addEventListener('click', function(e){
   const chip = e.target.closest('.relic-chip');
   if(chip){
-    // 手機版：把遺物說明顯示在 selection-bar
     const bar = document.getElementById('selection-bar');
-    if(bar && window.innerWidth <= 600){
+    if(bar){
       const tipEl = chip.querySelector('.relic-tip');
       const name = chip.childNodes[0] && chip.childNodes[0].textContent ? chip.childNodes[0].textContent.trim() : chip.textContent.trim();
       const desc = tipEl ? tipEl.textContent.trim() : '';
@@ -1208,10 +1210,6 @@ document.addEventListener('click', function(e){
       e.stopPropagation();
       return;
     }
-    // 桌面版：維持原本 tooltip 展開行為
-    const wasOpen = chip.classList.contains('tip-open');
-    document.querySelectorAll('.relic-chip.tip-open').forEach(c=>c.classList.remove('tip-open'));
-    if(!wasOpen) chip.classList.add('tip-open');
     e.stopPropagation();
     return;
   }
@@ -1959,7 +1957,7 @@ function endTurn(){
   const hasAtk=selected.some(c=>c.type==='atk'&&!c.charmed);
   if(hasAtk && !getTarget()){ log('請先點選一個目標。','bad'); return; }
 
-  document.getElementById('end-turn-btn').disabled=true;
+  setEndTurnDisabled(true);
 
   G.turn.atk=effectiveAtk;
   G.turn.sup=effectiveSup;
@@ -2820,7 +2818,7 @@ function enemyTurn(){
   G.turn={atk:0,sup:0,played:0,dmgRamp:0,atkCardBoost:0,dmgRampCount:0,turnNum:G.battleTurn+1};
   G.battleTurn++;
   G.pendingSkills=[];
-  document.getElementById('end-turn-btn').disabled=false;
+  setEndTurnDisabled(false);
   applyRelicPassives();
   renderAll();
 }
@@ -2832,14 +2830,14 @@ function checkRoomClear(){
   if(G.enemies.every(e=>e.dead)){
     setTimeout(()=>{
       log('房間清除！','sys');
-      const btn=document.getElementById('end-turn-btn');
-      btn.textContent= G.room>=G.totalRooms ? '查看結算 ✦' : '領取獎勵 →';
-      btn.disabled=false;
-      btn.onclick=()=>{
-        btn.textContent='結束回合';
-        btn.onclick=endTurn;
+      const label = G.room>=G.totalRooms ? '查看結算 ✦' : '領取獎勵 →';
+      const onclick = ()=>{
+        const btn = document.getElementById('end-turn-btn');
+        if(btn){ btn.textContent='結束回合'; btn.onclick=endTurn; }
         showReward();
       };
+      const btn2 = document.getElementById('end-turn-btn');
+      if(btn2){ btn2.textContent=label; btn2.disabled=false; btn2.onclick=onclick; }
     }, 800);
   }
 }
@@ -3238,7 +3236,7 @@ function showVictory(){
 
 function gameOver(){
   G.gameOver=true;
-  document.getElementById('end-turn-btn').disabled=true;
+  setEndTurnDisabled(true);
   document.getElementById('overlay-stats').innerHTML='';
   showOverlay('力不從心','撐不住了……');
 }
@@ -3466,5 +3464,6 @@ function renderDeckInfo(){
 // ══════════════════════════════════════════════════════
 // 不自動 initGame，等 confirmChar() 觸發
 </script>
+</div>
 </body>
 </html>
