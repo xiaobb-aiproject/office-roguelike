@@ -71,6 +71,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  position: relative;
 }
 
 /* ── 敵人區（上） ── */
@@ -426,13 +427,14 @@ body {
 /* ── MODALS ── */
 .modal {
   display: none;
-  position: fixed; inset: 0;
+  position: absolute; inset: 0;
   background: #000000cc;
   z-index: 100;
   align-items: center;
   justify-content: center;
   flex-direction: column;
   gap: 14px;
+  overflow-y: auto;
 }
 .modal.active { display: flex; }
 .modal-title {
@@ -785,8 +787,8 @@ body {
 
   /* 遺物列：可換行，第二排預留空間 */
   #relic-bar { font-size: 11px; padding: 4px 10px; flex-wrap: wrap; gap: 5px; min-height: 84px; align-content: flex-start; align-items: flex-start; }
-  .relic-chip .relic-tip { display: none; white-space: normal; min-width: 140px; font-size: 11px; }
-  .relic-chip.tip-open .relic-tip { display: block; }
+  .relic-chip .relic-tip { display: none !important; }
+  .relic-chip.tip-open .relic-tip { display: none !important; }
 
   /* 整體 main：上下排列 */
   #main { display: flex; flex-direction: column; flex: 1; min-height: 0; }
@@ -938,7 +940,7 @@ body {
   #end-turn-btn:disabled { opacity: .3; }
   #btn-row { display: none; }
 
-  /* selection-bar：跨兩欄在底部 */
+  /* selection-bar：固定在畫面底部 */
   #selection-bar {
     display: block;
     grid-column: 1 / -1;
@@ -950,11 +952,18 @@ body {
     letter-spacing: 0.5px;
     line-height: 1.5;
     flex-shrink: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 101;
+    background: var(--bg);
   }
   .modal { padding: 16px; }
   .modal-title { font-size: 18px !important; }
   .modal-sub { font-size: 13px !important; }
-  .relic-reward-card { width: 130px !important; padding: 10px 8px !important; }
+  .relic-reward-card { width: auto !important; max-width: 100% !important; padding: 10px 8px !important; }
+  #reward-choices { flex-direction: column !important; flex-wrap: nowrap !important; align-items: stretch !important; width: 100% !important; max-width: 100% !important; }
   .rrc-name { font-size: 13px !important; }
   .rrc-desc { font-size: 11px !important; }
   .rc-skip { font-size: 14px !important; padding: 10px 24px !important; }
@@ -1182,6 +1191,25 @@ window.addEventListener('resize', setVh);
 document.addEventListener('click', function(e){
   const chip = e.target.closest('.relic-chip');
   if(chip){
+    // 手機版：把遺物說明顯示在 selection-bar
+    const bar = document.getElementById('selection-bar');
+    if(bar && window.innerWidth <= 600){
+      const tipEl = chip.querySelector('.relic-tip');
+      const name = chip.childNodes[0] && chip.childNodes[0].textContent ? chip.childNodes[0].textContent.trim() : chip.textContent.trim();
+      const desc = tipEl ? tipEl.textContent.trim() : '';
+      const wasShowing = bar.dataset.relicName === name;
+      if(wasShowing){
+        bar.innerHTML = '';
+        bar.dataset.relicName = '';
+      } else {
+        bar.innerHTML = '<span style="color:#c8bae8;font-weight:bold;">'+name+'</span>'+
+          '<span style="color:#9977bb;margin-left:4px;font-size:10px;">'+desc+'</span>';
+        bar.dataset.relicName = name;
+      }
+      e.stopPropagation();
+      return;
+    }
+    // 桌面版：維持原本 tooltip 展開行為
     const wasOpen = chip.classList.contains('tip-open');
     document.querySelectorAll('.relic-chip.tip-open').forEach(c=>c.classList.remove('tip-open'));
     if(!wasOpen) chip.classList.add('tip-open');
@@ -2223,14 +2251,15 @@ function updateSelectionBar(){
   if(!bar || !G || !G.hand) return;
   const sel = G.hand.filter(c=>c.selected);
   if(sel.length===0){ bar.textContent=''; return; }
-  const parts = sel.map(c=>{
-    const tag = c.type==='atk' ? '攻' : '輔';
-    const desc = (c.desc||'')
-      .replace('造成 ? 點傷害','造成 '+G.atkPower+' 點傷害')
-      .replace('回復 ? HP','回復 '+G.healPower+' HP');
-    return '['+tag+'] '+c.name+'：'+desc;
-  });
-  bar.innerHTML = parts.join('<br>');
+  // 只顯示最後選的那張
+  const c = sel[sel.length-1];
+  const tag = c.type==='atk' ? '攻擊' : '輔助';
+  const desc = (c.desc||'')
+    .replace('造成 ? 點傷害','造成 '+G.atkPower+' 點傷害')
+    .replace('回復 ? HP','回復 '+G.healPower+' HP');
+  bar.innerHTML = '<span style="font-size:9px;color:#6644aa;margin-right:4px;">'+tag+'</span>'+
+    '<span style="color:#c8bae8;font-weight:bold;">'+c.name+'</span>'+
+    '<span style="color:#9977bb;margin-left:4px;font-size:10px;">'+desc+'</span>';
 }
 
 function renderLzDot(){
