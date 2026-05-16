@@ -805,6 +805,8 @@ body {
   #enemy-first {
     width: 81px;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
   }
   #enemy-first .enemy-portrait-card { width: 81px !important; }
   #enemy-first .ep-img-area { width: 81px !important; height: 122px !important; }
@@ -3283,10 +3285,10 @@ function renderAll(){ renderEnemies(); renderHP(); renderHand(); renderCounters(
 function renderEnemies(){
   const elFirst = document.getElementById('enemy-first');
   const elRest = document.getElementById('enemy-rest');
-  // fallback for desktop which still uses enemy-portraits
-  const elLegacy = document.getElementById('enemy-portraits');
   if(elFirst) elFirst.innerHTML = '';
   if(elRest) elRest.innerHTML = '';
+  // fallback: desktop legacy container (只在 first/rest 都不存在時用)
+  const elLegacy = (!elFirst && !elRest) ? document.getElementById('enemy-portraits') : null;
   if(elLegacy) elLegacy.innerHTML = '';
 
   G.enemies.forEach((e, idx) => {
