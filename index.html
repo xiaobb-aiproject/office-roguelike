@@ -793,12 +793,12 @@ body {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    gap: 4px;
-    padding: 6px 8px;
+    gap: 6px;
+    padding: 6px 6px 0;
     overflow-x: hidden;
   }
   #enemy-portraits .enemy-portrait-card:first-child {
-    width: 81px;
+    width: 81px !important;
     flex-shrink: 0;
   }
   #enemy-portraits .enemy-portrait-card:first-child .ep-img-area {
@@ -858,15 +858,17 @@ body {
   .counter-label { font-size: 9px; }
   .counter-dot { width: 7px; height: 7px; }
 
-  /* 手牌面板：改成 grid，mechanic-hint 和 selection-bar 跨兩欄 */
+  /* 手牌面板：grid，mechanic-hint 和 selection-bar 跨兩欄 */
   #hand-panel {
     flex: 1;
     min-width: 0;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto 1fr auto;
-    padding: 0;
+    grid-auto-rows: min-content;
+    gap: 4px;
+    padding: 4px;
     align-content: start;
+    overflow-y: auto;
   }
 
   /* mechanic-hint 頂部橫列 */
@@ -887,7 +889,7 @@ body {
     align-items: center;
     gap: 6px;
     border-radius: 6px;
-    margin: 2px;
+    margin: 0;
   }
   .card-tag { font-size: 9px !important; padding: 2px 4px !important; flex-shrink: 0; }
   .card-name { font-size: 12px !important; flex: 1; line-height: 1.2; }
@@ -922,7 +924,7 @@ body {
     color: #c8bae8;
     cursor: pointer;
     transition: background .15s, border-color .15s;
-    margin: 2px;
+    margin: 0;
     align-self: start;
   }
   #end-turn-btn:hover { background: #1a1030; border-color: #9966cc; }
