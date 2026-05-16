@@ -784,7 +784,7 @@ body {
   #room-label { font-size: 14px; }
 
   /* 遺物列：可換行，第二排預留空間 */
-  #relic-bar { font-size: 11px; padding: 4px 10px; flex-wrap: wrap; gap: 5px; min-height: 84px; }
+  #relic-bar { font-size: 11px; padding: 4px 10px; flex-wrap: wrap; gap: 5px; min-height: 84px; align-content: flex-start; align-items: flex-start; }
   .relic-chip .relic-tip { display: none; white-space: normal; min-width: 140px; font-size: 11px; }
   .relic-chip.tip-open .relic-tip { display: block; }
 
@@ -865,12 +865,12 @@ body {
   }
 
   /* 計數器 */
-  #counters { flex-direction: column; align-items: flex-start; gap: 2px; padding: 3px 4px; font-size: 11px; }
+  #counters { flex-direction: column; align-items: flex-start; gap: 2px; padding: 3px 4px; font-size: 11px; order: 2; }
   #counters > div[style*="width:1px"], #counters > div[style*="flex:1"] { display: none !important; }
   .counter-val { font-size: 13px; }
   .counter-label { font-size: 9px; }
   .counter-dot { width: 7px; height: 7px; }
-  #mechanic-hint { display: none; }
+  #mechanic-hint { display: block; font-size: 9px; color: #9977bb; padding: 2px 4px 4px; order: 1; }
 
   /* 手牌：扁長條縱列 */
   #hand-cards {
