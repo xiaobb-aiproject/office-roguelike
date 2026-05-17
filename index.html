@@ -1468,7 +1468,7 @@ const RELIC_POOL = [
 
   // ── 小雪專屬 ──
   { id:'xs_r1', name:'專業形象', rarity:'rare', owner:'xiaoxue',
-    desc:'HP 70%以上時，造成傷害+2，受到傷害-2',
+    desc:'HP 70%以上時，造成傷害+3，受到傷害-3',
     passive:{ bonusIfHp70:true } },
   { id:'xs_r2', name:'安心感', rarity:'common', owner:'xiaoxue',
     desc:'每次溢補時，儀態額外+1',
@@ -1477,7 +1477,7 @@ const RELIC_POOL = [
     desc:'每層儀態回復效果變為+7 HP（原為+5）',
     passive:{ graceHealBoost:2 } },
   { id:'xs_r4', name:'完美狀態', rarity:'epic', owner:'xiaoxue',
-    desc:'儀態為7時，所有牌效果翻倍',
+    desc:'儀態為7以上時，所有牌效果翻倍',
     passive:{ graceDoublAt7:true } },
   { id:'xs_r5', name:'晨間簡報', rarity:'rare', owner:'xiaoxue',
     desc:'獲得技能牌「晨間簡報」：立即觸發一次儀態回復效果',
@@ -1496,19 +1496,19 @@ const RELIC_POOL = [
     desc:'每場戰鬥開始時，陰鬱+2',
     onBattleStart:(G)=>{ G.lz_depression=(G.lz_depression||0)+2; renderLzDot(); log('刻板印象：陰鬱 +2（現在：'+G.lz_depression+'）。','sup'); } },
   { id:'lz_r2', name:'備用藥盒', rarity:'common', owner:'lingzi',
-    desc:'每回合輔助牌數額外+1陰鬱',
-    passive:{ dotExtraLayer:1 } },
+    desc:'HP 20以下時，陰鬱+5並回復陰鬱值的HP，一場戰鬥一次',
+    passive:{ dotEmergency:true } },
   { id:'lz_r3', name:'濃縮咖啡', rarity:'epic', owner:'lingzi',
     desc:'陰鬱10以上時，毒傷翻倍',
     passive:{ dotDoubleAt10:true } },
   { id:'lz_r4', name:'未讀訊息', rarity:'rare', owner:'lingzi',
-    desc:'受到傷害時，陰鬱+1',
-    passive:{ dotBurstOnHit:true } },
+    desc:'每張打出的輔助牌，額外陰鬱+1',
+    passive:{ dotOnSup:1 } },
   { id:'lz_r5', name:'安眠藥', rarity:'rare', owner:'lingzi',
-    desc:'獲得技能牌「安眠藥」：對全體敵人造成等同陰鬱的傷害',
+    desc:'獲得技能牌「安眠藥」：對全體敵人造成等同陰鬱的傷害，並回復陰鬱值×2的HP',
     onPickup:(G)=>{
       const card={ id:'lz_skill_burst', name:'安眠藥', type:'sup', isSkill:true,
-        desc:'對全體敵人造成等同陰鬱的傷害', uid:'lz_burst_'+Date.now(),
+        desc:'對全體敵人造成等同陰鬱的傷害，並回復陰鬱值×2的HP', uid:'lz_burst_'+Date.now(),
         effect:null, onResolve:(G2)=>{ lzDotBurst(G2); }
       };
       G.deck.push(card);
@@ -1527,13 +1527,13 @@ const RELIC_POOL = [
     desc:'亢奮3以上時，攻擊附帶暈眩效果',
     passive:{ stunIfFury3:true } },
   { id:'zz_r4', name:'能量飲料', rarity:'common', owner:'zizi',
-    desc:'首回合打出三張攻擊牌，額外獲得+1亢奮',
+    desc:'打出三張攻擊牌，額外獲得+1亢奮',
     passive:{ furyBonusFirstTurn:true } },
   { id:'zz_r5', name:'情緒宣洩', rarity:'epic', owner:'zizi',
-    desc:'獲得技能牌「情緒宣洩」：消耗所有亢奮，造成等同層數的額外傷害',
+    desc:'獲得技能牌「情緒宣洩」：對全體造成等同亢奮值的傷害',
     onPickup:(G)=>{
       const card={ id:'zz_skill_burst', name:'情緒宣洩', type:'atk', isSkill:true,
-        desc:'消耗所有亢奮層數，造成等同層數的額外傷害', uid:'zz_burst_'+Date.now(),
+        desc:'對全體造成等同亢奮值的傷害', uid:'zz_burst_'+Date.now(),
         effect:null, onResolve:(G2)=>{ zzBurstFury(G2); }
       };
       G.deck.push(card);
@@ -1634,7 +1634,7 @@ const ENEMY_DEF = {
 };
 const BOSS_DEF = [
   { name:'公司主管',       tag:'tag-b', label:'Boss',  hpR:[120,140], dmg:13, stunResist:true,
-    portrait:'boss_manager.png', onEntry:'今天準備好了嗎？' },
+    portrait:'boss_manager.png', onEntry:'又是你。今天準備好了嗎？' },
   { name:'找麻煩的客戶', tag:'tag-b', label:'Boss',  hpR:[100,120], dmg:12, resist:true, stunResist:true,
     portrait:'boss_client.png',  onEntry:'我要客訴。' },
   { name:'緋緋',           tag:'tag-b', label:'情敵',  hpR:[90,100],  dmg:16, stunResist:true, isRival:true,
@@ -1829,6 +1829,7 @@ function spawnRoom(){
   G.tripleAtkUsed = false;
   G.invincibleUsed = false;
   G.periodActive = false;
+  G.dotEmergencyUsed = false;
   // 進新房間清零角色資源
   G.xs_grace = 0;
   G.lz_depression = 0;
@@ -2090,10 +2091,12 @@ function endTurn(){
     }
   }
 
-  // 未讀訊息：打出輔助牌時毒層+1
-  if(m.dotOnSup && G.turn.sup>0){
-    const t=getTarget();
-    if(t){ t.dot=(t.dot||0)+(m.dotOnSup*G.turn.sup); log('未讀訊息：施毒 +'+(m.dotOnSup*G.turn.sup)+' 層。','sup'); }
+  // 未讀訊息：每張打出的輔助牌，陰鬱+1
+  if(G.charId==='lingzi' && m.dotOnSup && G.turn.sup>0){
+    const add = m.dotOnSup * G.turn.sup;
+    G.lz_depression=(G.lz_depression||0)+add;
+    log('未讀訊息：陰鬱 +'+add+'（現在：'+G.lz_depression+'）','sup');
+    renderLzDot();
   }
 
   // 雷射筆 stunOnMix
@@ -2138,9 +2141,9 @@ function endTurn(){
     xsApplyGraceOnTurnEnd(G);
   }
 
-  // 綾子：回合結束看sup count疊陰鬱
+  // 綾子：回合結束看sup count疊陰鬱（dotOnSup 在 playCard 時已處理）
   if(G.charId==='lingzi' && G.turn.sup>0){
-    const add=G.turn.sup+(G.relicMod&&G.relicMod.dotExtraLayer?G.relicMod.dotExtraLayer:0);
+    const add=G.turn.sup;
     G.lz_depression=(G.lz_depression||0)+add;
     log('陰鬱 +'+add+'（輔助 ×'+G.turn.sup+'）（現在：'+G.lz_depression+'）','sys');
     renderLzDot();
@@ -2153,12 +2156,12 @@ function endTurn(){
     renderZzFury();
   }
 
-  // 子子：首回合三攻額外亢奮
+  // 子子：三攻額外亢奮（能量飲料，不限首回合）
   if(G.charId==='zizi'){
     const m = G.relicMod || {};
-    if(m.furyBonusFirstTurn && G.battleTurn===1 && selected.filter(c=>c.type==='atk'&&!c.charmed).length===3){
+    if(m.furyBonusFirstTurn && selected.filter(c=>c.type==='atk'&&!c.charmed).length>=3){
       G.zz_fury = (G.zz_fury||0) + 1;
-      log('能量飲料：首回合三攻，亢奮額外+1（現在：'+G.zz_fury+'）','sys');
+      log('能量飲料：三攻，亢奮額外+1（現在：'+G.zz_fury+'）','sys');
       renderZzFury();
     }
   }
@@ -2272,7 +2275,7 @@ function renderXsGrace(){
 }
 
 // ══════════════════════════════════════════════════════
-// 綾子：毒傷爆發
+// 綾子：安眠藥爆發
 // ══════════════════════════════════════════════════════
 function lzDotBurst(G){
   const dep=G.lz_depression||0;
@@ -2282,7 +2285,7 @@ function lzDotBurst(G){
   alive.forEach(e=>{
     e.hp=Math.max(0,e.hp-dep);
     showDmg(e.id,'☠'+dep,false);
-    log(e.name+' 受到陰鬱爆發 '+dep+' 傷害（陰鬱不消耗）。','atk');
+    log(e.name+' 受到陰鬱爆發 '+dep+' 傷害。','atk');
     if(e.hp<=0){
       e.dead=true;
       if(e.onDead) log('「'+e.onDead+'」','sys');
@@ -2290,6 +2293,10 @@ function lzDotBurst(G){
       G.ownedRelics.forEach(rel=>{ if(rel.onEnemyDead) rel.onEnemyDead(G); });
     }
   });
+  const heal = dep*2;
+  G.hp = Math.min(G.maxHp, G.hp+heal);
+  log('安眠藥：回復 '+heal+' HP（陰鬱×2）。','sup');
+  renderHP();
   renderEnemies();
   checkRoomClear();
 }
@@ -2331,13 +2338,22 @@ function multiHitFury(G, base, times, extraFuryPerHit){
 function zzBurstFury(G){
   const fury = G.zz_fury || 0;
   if(fury <= 0){ log('亢奮為0，無效果。','sys'); return; }
-  const t = getTarget();
-  if(!t){ log('請先選擇目標。','bad'); return; }
-  const dmg = Math.max(1, fury);
-  applyDmg(t, dmg, false);
-  log('情緒宣洩！消耗'+fury+'層亢奮，造成 '+dmg+' 傷害。','atk');
-  G.zz_fury = 0;
+  const alive = G.enemies.filter(e=>!e.dead);
+  if(!alive.length) return;
+  alive.forEach(e=>{
+    const dmg = Math.max(1, fury);
+    applyDmg(e, dmg, false);
+    log('情緒宣洩！'+e.name+' 受到 '+dmg+' 傷害（等同亢奮值）。','atk');
+    if(e.hp<=0){
+      e.dead=true;
+      if(e.onDead) log('「'+e.onDead+'」','sys');
+      else log(e.name+' 在亢奮中倒下了。','sys');
+      G.ownedRelics.forEach(rel=>{ if(rel.onEnemyDead) rel.onEnemyDead(G); });
+    }
+  });
+  renderEnemies();
   renderZzFury();
+  checkRoomClear();
 }
 
 // ══════════════════════════════════════════════════════
@@ -2744,11 +2760,16 @@ function enemyTurn(){
         renderZzFury();
       }
 
-      // 綾子未讀訊息：受傷時陰鬱+1
-      if(G.charId==='lingzi' && G.relicMod && G.relicMod.dotBurstOnHit){
-        G.lz_depression=(G.lz_depression||0)+1;
-        log('未讀訊息：受傷，陰鬱 +1（現在：'+G.lz_depression+'）','sys');
+      // 綾子備用藥盒：HP 20以下，陰鬱+5並回復，一場戰鬥一次
+      if(G.charId==='lingzi' && G.relicMod && G.relicMod.dotEmergency && !G.dotEmergencyUsed && G.hp<=20){
+        G.dotEmergencyUsed=true;
+        const dot=G.lz_depression||0;
+        G.lz_depression=dot+5;
+        const heal=G.lz_depression;
+        G.hp=Math.min(G.maxHp,G.hp+heal);
+        log('備用藥盒：緊急觸發！陰鬱 +5，回復 '+heal+' HP（現在：'+G.hp+'）','sup');
         renderLzDot();
+        renderHP();
       }
 
       if(e.rivalType==='feifei'){
@@ -2855,7 +2876,7 @@ function applyRelicPassives(){
     healBonus:0, healIfSup2:0,
     thorns:0, charmExtra:0, selfDmgPerHit:0,
     dotDmgBonus:0, dotDmgDouble:false, dotExtraLayer:0, selfDotPerTurn:0, dotOnSup:0,
-    dotDoubleAt10:false, dotBurstOnHit:false,
+    dotDoubleAt10:false, dotBurstOnHit:false, dotEmergency:false,
     dmgVsNormal:0, dmgVsBoss:0, dmgVsRival:0,
     dmgIfEnemies2:0, dmgIfEnemies3:0,
     mixBonus:0, mixBonusTurn1:0, bonusIfHpHalf:false, bonusIfHp80:false, bonusIfHp70:false,
@@ -2918,6 +2939,7 @@ function applyRelicPassives(){
     if(p.dotOnSup)        mod.dotOnSup+=p.dotOnSup;
     if(p.dotDoubleAt10)   mod.dotDoubleAt10=true;
     if(p.dotBurstOnHit)   mod.dotBurstOnHit=true;
+    if(p.dotEmergency)    mod.dotEmergency=true;
     if(p.dmgVsNormal)     mod.dmgVsNormal+=p.dmgVsNormal;
     if(p.dmgVsBoss)       mod.dmgVsBoss+=p.dmgVsBoss;
     if(p.dmgVsRival)      mod.dmgVsRival+=p.dmgVsRival;
@@ -3006,7 +3028,7 @@ function calcDmgBonus(base, enemy){
   if(m.dmgBonusTurn1 && G.battleTurn===1) bonus+=m.dmgBonusTurn1;
   if(m.bonusIfHpHalf && G.hp>=G.maxHp*0.5) bonus+=1;
   if(m.bonusIfHp80 && G.hp>=G.maxHp*0.8) bonus+=1;
-  if(m.bonusIfHp70 && G.hp>=G.maxHp*0.7) bonus+=2;
+  if(m.bonusIfHp70 && G.hp>=G.maxHp*0.7) bonus+=3;
   if(m.loveSetBonus) bonus+=5;
   // 會議組：進度說明會（遞增）
   if(m.dmgRampPerAtk){
@@ -3044,7 +3066,7 @@ function calcDmgReduction(fromBoss){
   if(m.dmgRedIfHpBelow50 && G.hp<=50) red+=m.dmgRedIfHpBelow50;
   if(m.bonusIfHpHalf && G.hp>=G.maxHp*0.5) red+=1;
   if(m.bonusIfHp80 && G.hp>=G.maxHp*0.8) red+=1;
-  if(m.bonusIfHp70 && G.hp>=G.maxHp*0.7) red+=2;
+  if(m.bonusIfHp70 && G.hp>=G.maxHp*0.7) red+=3;
   if(m.loveSetBonus) red+=5;
   if(G.damageReduction>0) red+=2;
   return red;
@@ -3284,7 +3306,7 @@ function updateMood(){
     const g=G.xs_grace||0;
     const perG=5+(G.relicMod&&G.relicMod.graceHealBoost?G.relicMod.graceHealBoost:0);
     const parts=['攻+輔並出 → 儀態+1','回合開始回復 儀態×'+perG+' HP','溢出 → 對敵傷害'];
-    if(G.relicMod&&G.relicMod.bonusIfHp70) parts.push('HP≥70% → 傷害+2、受傷-2');
+    if(G.relicMod&&G.relicMod.bonusIfHp70) parts.push('HP≥70% → 傷害+3、受傷-3');
     if(G.relicMod&&G.relicMod.graceOnOverheal) parts.push('溢補 → 儀態+1');
     if(G.relicMod&&G.relicMod.graceDoublAt7) parts.push('儀態≥7 → 牌效翻倍'+(g>=7?' ✦':''));
     hint.textContent=parts.join('　│　');
@@ -3292,7 +3314,8 @@ function updateMood(){
     const dep=G.lz_depression||0;
     const parts=['輔助牌 → 陰鬱+輔助數','回合結束 → 全體承受等同陰鬱值傷害（不減層）'];
     if(G.relicMod&&G.relicMod.dotDoubleAt10) parts.push('陰鬱≥10 → 傷害翻倍'+(dep>=10?' ✦':''));
-    if(G.relicMod&&G.relicMod.dotBurstOnHit) parts.push('受傷 → 陰鬱+1');
+    if(G.relicMod&&G.relicMod.dotEmergency) parts.push('HP≤20 → 備用藥盒觸發'+(G.dotEmergencyUsed?' (已用)':''));
+    if(G.relicMod&&G.relicMod.dotOnSup) parts.push('輔助牌 → 陰鬱+'+G.relicMod.dotOnSup);
     hint.textContent=parts.join('　│　');
   } else if(G.charId==='zizi'){
     const f=G.zz_fury||0;
